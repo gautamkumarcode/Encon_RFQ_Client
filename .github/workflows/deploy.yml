@@ -23,10 +23,17 @@ jobs:
 
       # Create environment file BEFORE build
       - name: Create .env.local
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
         run: |
-          cat > .env.local << 'EOF'
-          NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
-          BACKEND_URL=${{ secrets.BACKEND_URL }}
+          RAW_API_URL="${NEXT_PUBLIC_API_URL}"
+          RAW_BACKEND_URL="${BACKEND_URL}"
+          API_URL="${RAW_API_URL:-/api}"
+          B_URL="${RAW_BACKEND_URL:-http://localhost:5000}"
+          cat > .env.local << EOF
+          NEXT_PUBLIC_API_URL=${API_URL}
+          BACKEND_URL=${B_URL}
           EOF
 
       # Install and build on GitHub Actions
@@ -87,13 +94,31 @@ jobs:
             tar -xzf frontend.tar.gz
             rm frontend.tar.gz
 
+            echo "🔐 Creating environment files (.env.local, .env, .env.production)..."
+            RAW_API_URL="${{ secrets.NEXT_PUBLIC_API_URL }}"
+            RAW_BACKEND_URL="${{ secrets.BACKEND_URL }}"
+            RAW_GOOGLE_ID="${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}"
+
+            API_URL="${RAW_API_URL:-/api}"
+            B_URL="${RAW_BACKEND_URL:-http://localhost:5000}"
+            GOOGLE_ID="${RAW_GOOGLE_ID:-770218511201-eigo4o97m5gsqc0g1nshrs0aku4ehp1a.apps.googleusercontent.com}"
+
+            cat > .env.local << EOF
+            NEXT_PUBLIC_API_URL=${API_URL}
+            BACKEND_URL=${B_URL}
+            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${GOOGLE_ID}
+            EOF
+
+            cp .env.local .env
+            cp .env.local .env.production
+
             echo "📥 Installing production dependencies..."
             npm install --omit=dev
 
             echo "🚀 Restarting PM2..."
 
             pm2 describe frontend > /dev/null 2>&1 \
-              && pm2 restart frontend \
+              && pm2 restart frontend --update-env \
               || pm2 start npm --name frontend -- start
 
             pm2 save
