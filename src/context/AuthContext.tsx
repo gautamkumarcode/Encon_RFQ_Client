@@ -66,7 +66,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode; initialUser?: U
     try {
       await api.post('/auth/logout');
     } catch (err) {
-      // Ignore
     } finally {
       setUser(null);
       router.push('/login');
