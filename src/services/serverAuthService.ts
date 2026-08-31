@@ -1,5 +1,5 @@
 const getApiBaseUrl = () => {
-  const raw = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const raw = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   return raw.endsWith('/api') ? raw : `${raw.replace(/\/$/, '')}/api`;
 };
 
