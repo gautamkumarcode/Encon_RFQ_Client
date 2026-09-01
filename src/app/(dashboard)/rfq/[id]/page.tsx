@@ -40,6 +40,14 @@ function isImageFile(att: { filename?: string; contentType?: string }): boolean 
   return /\.(gif|png|jpe?g|webp|svg|bmp|tiff?)$/i.test(fn);
 }
 
+function formatFileSize(bytes?: number): string {
+  if (!bytes || bytes <= 0) return 'Doc';
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
 function decodeHtmlEntities(str: string): string {
   if (!str) return '';
   return str
@@ -575,12 +583,11 @@ function GmailEmailViewer({
   );
 }
 
-const STATUS_OPTIONS = ['Open', 'Incomplete', 'Under review', 'Approved', 'Offer Sent', 'PO Received', 'REGRET', 'Closed'];
+const STATUS_OPTIONS = ['Open', 'Incomplete', 'Under review', 'Verified', 'Approved', 'Offer Sent', 'PO Received', 'REGRET', 'Closed'];
 
 const getAttachmentUrl = (attId: string | number, isDownload = false) => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   const dlParam = isDownload ? '?dl=1' : '';
-  return `${baseUrl}/rfq/attachments/${attId}${dlParam}`;
+  return `/api/rfq/attachments/${attId}${dlParam}`;
 };
 
 export default function EnquiryDetailPage() {
@@ -695,7 +702,7 @@ export default function EnquiryDetailPage() {
     enabled: !isNew && !!enquiryId,
   });
 
-  const fetchedEnquiry = enquiryResponse?.data || null;
+  const fetchedEnquiry = enquiryResponse?.data || (enquiryResponse && typeof enquiryResponse === 'object' && ('_id' in enquiryResponse || 'rfqId' in enquiryResponse) ? enquiryResponse : null);
   const historyLogs: ActivityLogItem[] = enquiryResponse?.history || [];
 
   const enquiry = useMemo(() => {
@@ -1245,19 +1252,40 @@ export default function EnquiryDetailPage() {
                             ) : (
                               <div
                                 key={att.id}
-                                className="shrink-0 w-40 p-2 rounded-md bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col justify-between gap-1 text-xs"
+                                className="shrink-0 w-44 p-2 rounded-md bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col justify-between gap-1 text-xs shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
                               >
                                 <span className="truncate font-medium text-slate-800 dark:text-slate-200 text-xs" title={att.filename}>
                                   {att.filename}
                                 </span>
-                                <div className="flex items-center justify-between text-[10px] text-slate-500 border-t border-slate-100 dark:border-slate-800 pt-1">
-                                  <span className="font-mono">{att.size ? `${(att.size / 1024).toFixed(1)} KB` : 'Doc'}</span>
+                                <div className="flex items-center justify-between text-[10px] text-slate-500 border-t border-slate-100 dark:border-slate-800/80 pt-1">
+                                  <span className="font-mono">{formatFileSize(att.size)}</span>
                                   <div className="flex items-center gap-1.5">
-                                    <a href={getAttachmentUrl(att.id, true)} target="_blank" rel="noopener noreferrer" title="Download">
-                                      <Download className="w-3 h-3 text-slate-500 hover:text-slate-700 dark:hover:text-slate-200" />
+                                    <a
+                                      href={getAttachmentUrl(att.id, false)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      title="Preview in Browser"
+                                      className="text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
+                                    >
+                                      <Eye className="w-3.5 h-3.5" />
                                     </a>
-                                    <button type="button" onClick={() => handleDeleteAttachment(att.id)} title="Delete" className="text-slate-400 hover:text-rose-500">
-                                      <X className="w-3 h-3" />
+                                    <a
+                                      href={getAttachmentUrl(att.id, true)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      download={att.filename}
+                                      title="Download File"
+                                      className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                                    >
+                                      <Download className="w-3.5 h-3.5" />
+                                    </a>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteAttachment(att.id)}
+                                      title="Delete Attachment"
+                                      className="text-slate-400 hover:text-rose-500 transition-colors"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
                                     </button>
                                   </div>
                                 </div>

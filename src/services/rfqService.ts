@@ -66,13 +66,20 @@ export interface RfqStats {
   total: number;
   active: number;
   incompleteCount?: number;
-  underReview: number;
-  offerSent: number;
-  closed: number;
-  overdue: number;
-  dueFollowups: number;
-  mappedOffersCount: number;
-  byAssignee: { name: string; count: number }[];
+  underReview?: number;
+  approvedCount?: number;
+  approvedCosting?: number;
+  offerSent?: number;
+  offersSent?: number;
+  closed?: number;
+  overdue?: number;
+  overdueCount?: number;
+  dueFollowups?: number;
+  dueToday?: number;
+  mappedOffersCount?: number;
+  pendingCount?: number;
+  unmappedOffers?: number;
+  byAssignee?: { name: string; count: number }[];
 }
 
 export interface PaginationMeta {
