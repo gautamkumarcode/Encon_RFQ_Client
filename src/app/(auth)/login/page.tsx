@@ -8,7 +8,7 @@ import { useNotification } from '../../../context/NotificationContext';
 import { EnconLogo } from '../../../components/common/EnconLogo';
 import { Lock, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
 
-const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '647158339779-20m9220t1cg0err1jfd2fk5pmdf3cjlv.apps.googleusercontent.com';
+const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 function LoginFormContent() {
   const [email, setEmail] = useState('');
