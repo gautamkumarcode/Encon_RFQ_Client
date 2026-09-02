@@ -15,6 +15,8 @@ import {
   KeyRound,
   Edit2,
   AppWindow,
+  X,
+  Mail,
 } from 'lucide-react';
 
 export default function UserManagementPage() {
@@ -27,15 +29,25 @@ export default function UserManagementPage() {
 
   // Modals
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState<User | null>(null);
   const [showResetModal, setShowResetModal] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState('Password123!');
 
-  // Form State
+  // Form State — Create
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: 'Password123!',
     roleId: '',
+    applicationIds: [] as string[],
+  });
+
+  // Form State — Edit
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    email: '',
+    roleId: '',
+    status: 'ACTIVE' as 'ACTIVE' | 'DISABLED',
     applicationIds: [] as string[],
   });
 
@@ -83,6 +95,21 @@ export default function UserManagementPage() {
     },
   });
 
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ userId, data }: { userId: string; data: typeof editFormData }) => {
+      const res = await api.put(`/users/${userId}`, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      showToast('User Updated', 'User role & account details updated successfully', 'success');
+      setShowEditModal(null);
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: (err: any) => {
+      showToast('Error', err.response?.data?.message || 'Failed to update user', 'error');
+    },
+  });
+
   const toggleStatusMutation = useMutation({
     mutationFn: async (userId: string) => {
       const res = await api.patch(`/users/${userId}/status`);
@@ -105,6 +132,19 @@ export default function UserManagementPage() {
     },
   });
 
+  const resendWelcomeMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await api.post(`/users/${userId}/resend-welcome`);
+      return res.data;
+    },
+    onSuccess: (res) => {
+      showToast('Welcome Email Sent ✉️', res.message || 'Login link & welcome email resent successfully', 'success');
+    },
+    onError: (err: any) => {
+      showToast('Send Error', err.response?.data?.message || 'Failed to resend welcome email', 'error');
+    },
+  });
+
   const handleAppCheckbox = (appId: string) => {
     setFormData((prev) => {
       const exists = prev.applicationIds.includes(appId);
@@ -114,6 +154,32 @@ export default function UserManagementPage() {
         return { ...prev, applicationIds: [...prev.applicationIds, appId] };
       }
     });
+  };
+
+  const handleEditAppCheckbox = (appId: string) => {
+    setEditFormData((prev) => {
+      const exists = prev.applicationIds.includes(appId);
+      if (exists) {
+        return { ...prev, applicationIds: prev.applicationIds.filter((id) => id !== appId) };
+      } else {
+        return { ...prev, applicationIds: [...prev.applicationIds, appId] };
+      }
+    });
+  };
+
+  const openEditModal = (u: User) => {
+    const roleMatch = roles.find((r) => r.name === (typeof u.role === 'object' ? (u.role as any).name : u.role));
+    const currentRoleId = u.roleDetails?.id || roleMatch?.id || (roles[0]?.id || '');
+    const currentAppIds = u.applications ? u.applications.map((app: any) => app.id || app._id) : [];
+
+    setEditFormData({
+      name: u.name || '',
+      email: u.email || '',
+      roleId: currentRoleId,
+      status: (u.status as 'ACTIVE' | 'DISABLED') || 'ACTIVE',
+      applicationIds: currentAppIds,
+    });
+    setShowEditModal(u);
   };
 
   return (
@@ -220,7 +286,7 @@ export default function UserManagementPage() {
                         {u.applications && u.applications.length > 0 ? (
                           u.applications.map((app) => (
                             <span
-                              key={app.id}
+                              key={app.id || (app as any)._id}
                               className="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-[9px] font-medium"
                             >
                               {app.code}
@@ -245,6 +311,21 @@ export default function UserManagementPage() {
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => openEditModal(u)}
+                          className="p-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 transition-colors"
+                          title="Edit User & Roles"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => resendWelcomeMutation.mutate(u.id)}
+                          disabled={resendWelcomeMutation.isPending}
+                          className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors"
+                          title="Resend Welcome & Login Link Email"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           onClick={() => toggleStatusMutation.mutate(u.id)}
                           className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 transition-colors"
@@ -272,9 +353,14 @@ export default function UserManagementPage() {
       {showCreateModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="max-w-lg w-full glass-card rounded-3xl p-6 border border-slate-800 shadow-2xl">
-            <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <UserPlus className="w-5 h-5 text-thermal-500" /> Create Encon User Account
-            </h2>
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-thermal-500" /> Create Encon User Account
+              </h2>
+              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
             <form
               onSubmit={(e) => {
@@ -376,13 +462,132 @@ export default function UserManagementPage() {
         </div>
       )}
 
+      {/* Edit User & Role Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="max-w-lg w-full glass-card rounded-3xl p-6 border border-slate-800 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Edit2 className="w-5 h-5 text-cyan-400" /> Edit User & Assign Roles
+              </h2>
+              <button onClick={() => setShowEditModal(null)} className="text-slate-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                updateUserMutation.mutate({ userId: showEditModal.id, data: editFormData });
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={editFormData.email}
+                  onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Assigned System Role</label>
+                <select
+                  value={editFormData.roleId}
+                  onChange={(e) => setEditFormData({ ...editFormData, roleId: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500 font-semibold text-cyan-400"
+                >
+                  {roles.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name} - {r.description}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Account Status</label>
+                <select
+                  value={editFormData.status}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, status: e.target.value as 'ACTIVE' | 'DISABLED' })
+                  }
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="DISABLED">DISABLED</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-2">
+                  Application Access Privileges
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {applications.map((app) => (
+                    <label
+                      key={app.id}
+                      className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2 cursor-pointer hover:border-slate-700"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={editFormData.applicationIds.includes(app.id)}
+                        onChange={() => handleEditAppCheckbox(app.id)}
+                        className="rounded border-slate-700 text-cyan-500 focus:ring-cyan-500"
+                      />
+                      <span className="text-xs font-semibold text-slate-200">{app.code}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(null)}
+                  className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updateUserMutation.isPending}
+                  className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-xl shadow-md transition-all"
+                >
+                  {updateUserMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Admin Reset Password Modal */}
       {showResetModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="max-w-md w-full glass-card rounded-3xl p-6 border border-slate-800 shadow-2xl">
-            <h2 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <KeyRound className="w-5 h-5 text-amber-500" /> Reset User Password
-            </h2>
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <KeyRound className="w-5 h-5 text-amber-500" /> Reset User Password
+              </h2>
+              <button onClick={() => setShowResetModal(null)} className="text-slate-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
             <p className="text-xs text-slate-400 mb-4">
               Forced reset for <span className="text-white font-semibold">{showResetModal.email}</span>
             </p>

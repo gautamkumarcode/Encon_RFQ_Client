@@ -5,6 +5,7 @@ export interface User {
   mobile?: string;
   department?: string;
   role: string;
+  roleDetails?: any;
   roleDescription?: string;
   status: 'ACTIVE' | 'DISABLED';
   applications?: Application[];
