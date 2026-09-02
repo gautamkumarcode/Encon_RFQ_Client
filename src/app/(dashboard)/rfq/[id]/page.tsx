@@ -369,16 +369,29 @@ function GmailEmailViewer({
     return parseEmailThreadMessages(rawContent, fromName || 'Customer', fromEmail || '', date || '');
   }, [rawContent, fromName, fromEmail, date]);
 
+  const displaySenderName = useMemo(() => {
+    const isClientEmail = fromEmail && !isEnconCompanyAddr(fromEmail);
+    const isInternalName = (n?: string) => {
+      if (!n) return false;
+      const lower = n.toLowerCase();
+      return ['nutan', 'shikha', 'rupanjana', 'encon'].some((k) => lower.includes(k));
+    };
+    if (isClientEmail && isInternalName(fromName)) {
+      return 'Customer';
+    }
+    return fromName || 'Customer';
+  }, [fromName, fromEmail]);
+
   return (
     <div className="rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 p-4 md:p-5 h-full flex flex-col justify-between space-y-4 shadow-2xs">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3 shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-bold flex items-center justify-center border border-cyan-500/30 text-sm shrink-0">
-            {(fromName || 'EM').substring(0, 2).toUpperCase()}
+            {(displaySenderName || 'CU').substring(0, 2).toUpperCase()}
           </div>
           <div>
             <h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              {fromName || 'Customer'}
+              {displaySenderName}
               {fromEmail && <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 font-normal">&lt;{fromEmail}&gt;</span>}
             </h4>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
