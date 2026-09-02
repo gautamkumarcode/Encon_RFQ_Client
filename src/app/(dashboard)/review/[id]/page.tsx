@@ -125,7 +125,7 @@ export default function ReviewDetailPage() {
       await rfqService.verifyReview(enquiryId, { remarks });
 
       queryClient.invalidateQueries({ queryKey: ['review-enquiry', enquiryId] });
-      queryClient.invalidateQueries({ queryKey: ['review-enquiries'] });
+      queryClient.invalidateQueries({ queryKey: ['all-review-enquiries'] });
       queryClient.invalidateQueries({ queryKey: ['rfq-tracker'] });
 
       showToast('Costing Verified 🎯', `Costing for RFQ ${enquiry?.rfqId} verified and recommended for final Admin approval.`, 'success');
@@ -149,7 +149,7 @@ export default function ReviewDetailPage() {
       });
 
       queryClient.invalidateQueries({ queryKey: ['review-enquiry', enquiryId] });
-      queryClient.invalidateQueries({ queryKey: ['review-enquiries'] });
+      queryClient.invalidateQueries({ queryKey: ['all-review-enquiries'] });
       queryClient.invalidateQueries({ queryKey: ['rfq-tracker'] });
 
       showToast('Final Approval Granted 🚀', `Costing for RFQ ${enquiry?.rfqId} approved by Admin! Ready for client dispatch.`, 'success');
@@ -176,10 +176,10 @@ export default function ReviewDetailPage() {
       });
 
       queryClient.invalidateQueries({ queryKey: ['review-enquiry', enquiryId] });
-      queryClient.invalidateQueries({ queryKey: ['review-enquiries'] });
+      queryClient.invalidateQueries({ queryKey: ['all-review-enquiries'] });
       queryClient.invalidateQueries({ queryKey: ['rfq-tracker'] });
 
-      showToast('Changes Requested', `Enquiry #${enquiry?.rfqId} sent back to Open with feedback.`, 'info');
+      showToast('Changes Requested ↩️', `Enquiry #${enquiry?.rfqId} sent back to Open for revision.`, 'info');
       router.push('/review');
     } catch (err: any) {
       showToast('Action Failed', err.message || 'Failed to request changes', 'error');
