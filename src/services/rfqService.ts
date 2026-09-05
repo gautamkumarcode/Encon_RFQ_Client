@@ -12,6 +12,17 @@ export interface Attachment {
   url?: string;
 }
 
+export interface FollowupEntry {
+  _id?: string;
+  id?: string;
+  type: string;
+  note: string;
+  author: string;
+  authorEmail?: string;
+  createdAt: string;
+  nextActionDate?: string;
+}
+
 export interface Enquiry {
   id: string | number;
   rfqId: string;
@@ -51,6 +62,7 @@ export interface Enquiry {
   approvedBy?: string;
   approvedAt?: string;
   attachments?: Attachment[];
+  followups?: FollowupEntry[];
   createdAt: string;
   updatedAt: string;
   daysOpen: number | null;
@@ -235,6 +247,11 @@ export const rfqService = {
 
   syncDriveFolder: async (id: string | number) => {
     const res = await api.post(`/rfq/${id}/sync-drive`);
+    return res.data;
+  },
+
+  addFollowup: async (id: string | number, payload: { note: string; type?: string; nextActionDate?: string; lastCallDate?: string }) => {
+    const res = await api.post(`/rfq/${id}/followup`, payload);
     return res.data;
   },
 };
