@@ -63,6 +63,19 @@ const getAgingDays = (dateStr?: string) => {
   return `${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
 };
 
+const getPageNumbers = (currentPage: number, totalPages: number): (number | string)[] => {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+  if (currentPage <= 3) {
+    return [1, 2, 3, 4, '...', totalPages];
+  }
+  if (currentPage >= totalPages - 2) {
+    return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+  }
+  return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+};
+
 interface RfqTrackerClientProps {
   initialData?: any;
 }
@@ -198,10 +211,10 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
     },
     initialData: (isDefaultState && initialData)
       ? {
-          enquiries: Array.isArray(initialData) ? initialData : (initialData.data || []),
-          pagination: initialData.pagination || null,
-          stats: initialData.stats || null,
-        }
+        enquiries: Array.isArray(initialData) ? initialData : (initialData.data || []),
+        pagination: initialData.pagination || null,
+        stats: initialData.stats || null,
+      }
       : undefined,
     placeholderData: keepPreviousData,
   });
@@ -515,24 +528,22 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
                     setPage(1);
                     updateUrlParams({ tab: nextTab, page: 1 });
                   }}
-                  className={`px-3 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 ${
-                    tabFilter === tab.key
-                      ? 'bg-cyan-600 text-white font-bold shadow-md shadow-cyan-600/20'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-                  }`}
+                  className={`px-3 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 ${tabFilter === tab.key
+                    ? 'bg-cyan-600 text-white font-bold shadow-md shadow-cyan-600/20'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                    }`}
                 >
                   <span>{tab.label}</span>
                   {tab.count !== undefined && tab.count > 0 && (
                     <span
-                      className={`px-1.5 py-0.2 text-[10px] rounded-full font-bold ${
-                        tabFilter === tab.key
-                          ? 'bg-white/20 text-white'
-                          : tab.key === 'overdue'
+                      className={`px-1.5 py-0.2 text-[10px] rounded-full font-bold ${tabFilter === tab.key
+                        ? 'bg-white/20 text-white'
+                        : tab.key === 'overdue'
                           ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
                           : tab.key === 'review'
-                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                          : 'bg-slate-800 text-slate-300'
-                      }`}
+                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            : 'bg-slate-800 text-slate-300'
+                        }`}
                     >
                       {tab.count}
                     </span>
@@ -601,6 +612,25 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
                   </option>
                 ))}
               </select>
+
+              {/* Reset Filters Button */}
+              {!isDefaultState && (
+                <button
+                  onClick={() => {
+                    setSearchInput('');
+                    setDebouncedSearch('');
+                    setStatusFilter('');
+                    setAssigneeFilter('');
+                    setTabFilter('all');
+                    setPage(1);
+                    router.replace('/rfq', { scroll: false });
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-all whitespace-nowrap"
+                  title="Reset All Filters"
+                >
+                  <X className="w-3.5 h-3.5" /> Reset Filters
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -693,23 +723,22 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
                       {/* STATUS */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold border inline-flex items-center gap-1.5 ${
-                            e.status === 'Open'
-                              ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
-                              : e.status === 'Incomplete'
+                          className={`px-3 py-1 rounded-full text-xs font-semibold border inline-flex items-center gap-1.5 ${e.status === 'Open'
+                            ? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+                            : e.status === 'Incomplete'
                               ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
                               : e.status === 'Under review'
-                              ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                              : e.status === 'Verified'
-                              ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
-                              : e.status === 'Approved'
-                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                              : e.status === 'Offer Sent'
-                              ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30'
-                              : e.status === 'PO Received'
-                              ? 'bg-green-500/10 text-green-300 border-green-500/30'
-                              : 'bg-slate-800 text-slate-400 border-slate-700'
-                          }`}
+                                ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                                : e.status === 'Verified'
+                                  ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
+                                  : e.status === 'Approved'
+                                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                                    : e.status === 'Offer Sent'
+                                      ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30'
+                                      : e.status === 'PO Received'
+                                        ? 'bg-green-500/10 text-green-300 border-green-500/30'
+                                        : 'bg-slate-800 text-slate-400 border-slate-700'
+                            }`}
                         >
                           <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
                           {e.status || 'Open'}
@@ -829,8 +858,15 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
                       Previous
                     </button>
 
-                    {Array.from({ length: pagination.totalPages }, (_, i) => {
-                      const pageNum = i + 1;
+                    {getPageNumbers(activePage, pagination.totalPages).map((item, idx) => {
+                      if (typeof item === 'string') {
+                        return (
+                          <span key={`ellipsis-${idx}`} className="px-1.5 py-1 text-slate-600 font-mono select-none">
+                            ...
+                          </span>
+                        );
+                      }
+                      const pageNum = item;
                       return (
                         <button
                           key={pageNum}
@@ -838,11 +874,10 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
                             setPage(pageNum);
                             updateUrlParams({ page: pageNum });
                           }}
-                          className={`w-7 h-7 rounded-lg text-xs font-bold font-mono transition-all ${
-                            activePage === pageNum
-                              ? 'bg-cyan-600 text-white shadow-md'
-                              : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800'
-                          }`}
+                          className={`w-7 h-7 rounded-lg text-xs font-bold font-mono transition-all ${activePage === pageNum
+                            ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/20'
+                            : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800'
+                            }`}
                         >
                           {pageNum}
                         </button>

@@ -141,9 +141,8 @@ function parseEmailThreadMessages(rawText: string, defaultSender: string, defaul
   text = decodeHtmlEntities(text).trim();
 
   // Split on all standard thread message boundaries
-  const splitRegex = /(?:\n\s*|\n?)(?=(?:---+\s*Thread Update.*?:?|On\s+.*?\s+wrote:|-{3,}\s*(?:Original Message|Forwarded message)\s*-{3,}|From:\s*.*?(?:\r?\n|$)|\-{5,}\s*Forwarded message\s*\-{5,}))/gi;
-
-  const rawBlocks = text.split(splitRegex).map((b) => b.trim()).filter(Boolean);
+  const splitRegex = /(?:\n\s*|\n?)(?=(?:---+\s*Thread Update.*?:?|On\s+.*?\s+wrote:|-{3,}\s*(?:Original Message|Forwarded message)\s*-{3,}|From:\s*.*?(?:\r?\n|$)|-{5,}\s*Forwarded message\s*-{5,}))/gi;
+  const rawBlocks = text.split(splitRegex).map((b) => b.trim()).filter((b) => b.length > 5);
 
   if (rawBlocks.length === 0) {
     const isComp = isEnconCompanyAddr(text) || isEnconCompanyAddr(defaultEmail);
@@ -193,9 +192,9 @@ function parseEmailThreadMessages(rawText: string, defaultSender: string, defaul
         body = block.replace(/^On\s+[^\n]+?\s+wrote:/i, '').trim();
       } else {
         // Pattern 3: From: ... Sent: ... / ---------- Forwarded message ---------
-        const fromMatch = block.match(/^From:\s*([^\n]+)/i);
+        const fromMatch = block.match(/(?:From:\s*([^\n]+)|-{3,}\s*Forwarded message\s*-{3,}[\s\S]*?From:\s*([^\n]+))/i);
         if (fromMatch) {
-          const fromLine = fromMatch[1];
+          const fromLine = fromMatch[1] || fromMatch[2];
           const emailM = fromLine.match(/<([^>]+)>/) || fromLine.match(/[\w.+-]+@[\w.-]+\.\w{2,}/);
           if (emailM) email = (emailM[1] || emailM[0]).trim();
 
@@ -382,6 +381,22 @@ function GmailEmailViewer({
     return fromName || 'Customer';
   }, [fromName, fromEmail]);
 
+  const firstReceivedDate = useMemo(() => {
+    if (chatMessages.length > 0) {
+      const oldest = chatMessages[chatMessages.length - 1];
+      if (oldest.date) return oldest.date;
+    }
+    return date || 'Recent';
+  }, [chatMessages, date]);
+
+  const latestUpdateDate = useMemo(() => {
+    if (chatMessages.length > 1) {
+      const newest = chatMessages[0];
+      if (newest.date && newest.date !== firstReceivedDate) return newest.date;
+    }
+    return null;
+  }, [chatMessages, firstReceivedDate]);
+
   return (
     <div className="rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 p-4 md:p-5 h-full flex flex-col justify-between space-y-4 shadow-2xs">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3 shrink-0">
@@ -395,7 +410,10 @@ function GmailEmailViewer({
               {fromEmail && <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 font-normal">&lt;{fromEmail}&gt;</span>}
             </h4>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-              Subject: <span className="text-slate-800 dark:text-slate-200 font-medium">{subject}</span> · Received: <span className="text-slate-500 dark:text-slate-400">{date || 'Recent'}</span>
+              Subject: <span className="text-slate-800 dark:text-slate-200 font-medium">{subject}</span> · First Received: <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{firstReceivedDate}</span>
+              {latestUpdateDate && (
+                <> · Last Update: <span className="text-cyan-600 dark:text-cyan-400 font-medium">{latestUpdateDate}</span></>
+              )}
             </p>
           </div>
         </div>
