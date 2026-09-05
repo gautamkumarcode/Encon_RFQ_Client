@@ -37,6 +37,8 @@ import {
   Eye,
   Users,
   Folder,
+  History,
+  Phone,
 } from 'lucide-react';
 import { rfqService, Enquiry, RfqStats, DirectoryItem, Attachment } from '@/services/rfqService';
 import { useNotification } from '@/context/NotificationContext';
@@ -237,6 +239,17 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
   const [offerNoInput, setOfferNoInput] = useState('');
   const [offerDateInput, setOfferDateInput] = useState('');
 
+  // Inline Remark Edit State
+  const [editingRemarkId, setEditingRemarkId] = useState<string | number | null>(null);
+  const [editingRemarkValue, setEditingRemarkValue] = useState<string>('');
+
+  // Follow-up & Remark History Modal State
+  const [historyTargetEnquiry, setHistoryTargetEnquiry] = useState<Enquiry | null>(null);
+  const [historyModalNote, setHistoryModalNote] = useState('');
+  const [historyModalType, setHistoryModalType] = useState('Call');
+  const [historyModalDate, setHistoryModalDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [historySaving, setHistorySaving] = useState(false);
+
   // Directory modal state
   const [isDirectoryOpen, setIsDirectoryOpen] = useState(false);
   const [directoryItems, setDirectoryItems] = useState<DirectoryItem[]>([]);
@@ -286,6 +299,40 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
       showToast('Status Updated', `Status changed to ${newStatus}`, 'success');
     } catch (err: any) {
       showToast('Update Error', err?.response?.data?.message || err.message || 'Failed to update status', 'error');
+    }
+  };
+
+  const handleSaveInlineRemark = async (id: string | number) => {
+    try {
+      await rfqService.inlineUpdateField(id, 'remarks', editingRemarkValue);
+      setEditingRemarkId(null);
+      fetchTrackerData();
+      showToast('Remark Saved', 'Enquiry remarks updated successfully', 'success');
+    } catch (err: any) {
+      showToast('Update Error', err?.response?.data?.message || err.message || 'Failed to update remarks', 'error');
+    }
+  };
+
+  const handleSaveModalFollowup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!historyTargetEnquiry || !historyModalNote.trim()) return;
+    setHistorySaving(true);
+    try {
+      const res = await rfqService.addFollowup(historyTargetEnquiry.id, {
+        type: historyModalType,
+        note: historyModalNote.trim(),
+        lastCallDate: historyModalDate,
+      });
+      fetchTrackerData();
+      if (res.data) {
+        setHistoryTargetEnquiry(res.data);
+      }
+      setHistoryModalNote('');
+      showToast('Follow-up Recorded 📞', 'New follow-up entry logged with author info', 'success');
+    } catch (err: any) {
+      showToast('Error', err?.response?.data?.message || err.message || 'Failed to record follow-up', 'error');
+    } finally {
+      setHistorySaving(false);
     }
   };
 
@@ -399,6 +446,7 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
       'Email',
       'Item Description',
       'Assigned To',
+      'Remarks',
       'Status',
       'Offer No',
       'Offer Date',
@@ -413,6 +461,7 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
       `"${e.email || ''}"`,
       `"${(e.itemDescription || '').replace(/"/g, '""')}"`,
       `"${e.assignedTo || ''}"`,
+      `"${(e.remarks || e.followupRemarks || e.pendingRemarks || '').replace(/"/g, '""')}"`,
       `"${e.status || ''}"`,
       `"${e.offerNo || ''}"`,
       `"${e.offerDate || ''}"`,
@@ -668,6 +717,7 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
                     <th className="py-3 px-4">COMPANY</th>
                     <th className="py-3 px-4">ITEM DESCRIPTION</th>
                     <th className="py-3 px-4">TECHNICAL PERSON</th>
+                    <th className="py-3 px-4">REMARKS</th>
                     <th className="py-3 px-4">STATUS</th>
                     <th className="py-3 px-4">AGING</th>
                     <th className="py-3 px-4">OFFER MAPPING</th>
@@ -718,6 +768,79 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
                             {e.assignedTo || 'Unassigned'}
                           </span>
                         </div>
+                      </td>
+
+                      {/* REMARKS */}
+                      <td className="py-3.5 px-4 max-w-[220px]">
+                        {editingRemarkId === e.id ? (
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="text"
+                              value={editingRemarkValue}
+                              onChange={(evt) => setEditingRemarkValue(evt.target.value)}
+                              onKeyDown={(evt) => {
+                                if (evt.key === 'Enter') handleSaveInlineRemark(e.id);
+                                if (evt.key === 'Escape') setEditingRemarkId(null);
+                              }}
+                              autoFocus
+                              className="w-full bg-slate-950 border border-cyan-500 rounded px-2 py-1 text-xs text-white focus:outline-none"
+                              placeholder="Enter remarks..."
+                            />
+                            <button
+                              onClick={() => handleSaveInlineRemark(e.id)}
+                              className="p-1 text-emerald-400 hover:text-emerald-300 rounded hover:bg-emerald-500/10 transition-colors"
+                              title="Save Remark"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setEditingRemarkId(null)}
+                              className="p-1 text-rose-400 hover:text-rose-300 rounded hover:bg-rose-500/10 transition-colors"
+                              title="Cancel"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between gap-1 group/remark">
+                            <span
+                              className={`text-slate-300 truncate text-xs ${canEdit ? 'cursor-pointer hover:text-white hover:underline' : ''}`}
+                              title={e.remarks || e.followupRemarks || e.pendingRemarks || ''}
+                              onClick={() => {
+                                if (canEdit) {
+                                  setEditingRemarkId(e.id);
+                                  setEditingRemarkValue(e.remarks || e.followupRemarks || e.pendingRemarks || '');
+                                }
+                              }}
+                            >
+                              {e.remarks || e.followupRemarks || e.pendingRemarks || <span className="italic text-slate-500">—</span>}
+                            </span>
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover/remark:opacity-100 transition-opacity flex-shrink-0">
+                              <button
+                                onClick={(evt) => {
+                                  evt.stopPropagation();
+                                  setHistoryTargetEnquiry(e);
+                                }}
+                                className="p-1 text-slate-400 hover:text-cyan-400 rounded transition-colors"
+                                title="View Remark & Follow-up History (Who wrote what)"
+                              >
+                                <History className="w-3 h-3 text-cyan-400" />
+                              </button>
+                              {canEdit && (
+                                <button
+                                  onClick={() => {
+                                    setEditingRemarkId(e.id);
+                                    setEditingRemarkValue(e.remarks || e.followupRemarks || e.pendingRemarks || '');
+                                  }}
+                                  className="p-1 text-slate-400 hover:text-cyan-400 rounded transition-colors"
+                                  title="Edit Remark"
+                                >
+                                  <Edit className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </td>
 
                       {/* STATUS */}
@@ -1058,6 +1181,135 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* FOLLOW-UP & REMARK HISTORY MODAL */}
+      {historyTargetEnquiry && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="glass-card bg-obsidian-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <History className="w-4 h-4 text-cyan-400" />
+                  Follow-up & Remarks History — {historyTargetEnquiry.rfqId || `RFQ #${historyTargetEnquiry.id}`}
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  {historyTargetEnquiry.companyName} {historyTargetEnquiry.contactPerson ? `· ${historyTargetEnquiry.contactPerson}` : ''}
+                </p>
+              </div>
+              <button onClick={() => setHistoryTargetEnquiry(null)} className="text-slate-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Quick Add Form */}
+            {canEdit && (
+              <form onSubmit={handleSaveModalFollowup} className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-[11px] font-bold text-slate-300">Quick Log New Follow-up:</span>
+                  <div className="flex items-center gap-1">
+                    {['Call', 'Followup', 'Email', 'Meeting', 'Remark'].map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setHistoryModalType(t)}
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${historyModalType === t
+                          ? 'bg-cyan-600 text-white'
+                          : 'bg-slate-900 text-slate-400 hover:text-white'
+                          }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    required
+                    placeholder={`Enter ${historyModalType.toLowerCase()} discussion details...`}
+                    value={historyModalNote}
+                    onChange={(e) => setHistoryModalNote(e.target.value)}
+                    className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={historySaving}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs whitespace-nowrap"
+                  >
+                    {historySaving ? 'Saving...' : 'Add Log'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Timeline Log List */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-slate-300">
+                Log History (Who wrote what & when)
+              </label>
+              <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 max-h-72 overflow-y-auto space-y-2.5 custom-scrollbar">
+                {(() => {
+                  const items = Array.isArray(historyTargetEnquiry.followups) && historyTargetEnquiry.followups.length > 0
+                    ? [...historyTargetEnquiry.followups].reverse()
+                    : (historyTargetEnquiry.followupRemarks || historyTargetEnquiry.remarks || '')
+                      .split(/\n\n+/)
+                      .filter(Boolean)
+                      .map((raw, idx) => ({
+                        _id: `legacy-${idx}`,
+                        type: 'Remark',
+                        note: raw.trim(),
+                        author: historyTargetEnquiry.assignedTo || 'Team Member',
+                        createdAt: historyTargetEnquiry.dateReceived || '',
+                      }));
+
+                  if (items.length === 0) {
+                    return (
+                      <div className="p-4 text-center text-xs text-slate-500 italic">
+                        No follow-up remarks recorded yet for this RFQ.
+                      </div>
+                    );
+                  }
+
+                  return items.map((entry: any, idx: number) => {
+                    const typeLabel = entry.type || 'Remark';
+                    const formattedDate = entry.createdAt
+                      ? (isNaN(new Date(entry.createdAt).getTime()) ? entry.createdAt : new Date(entry.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }))
+                      : 'N/A';
+
+                    return (
+                      <div key={entry._id || entry.id || idx} className="p-3 bg-obsidian-900 rounded-xl border border-slate-800 space-y-1">
+                        <div className="flex items-center justify-between border-b border-slate-800/80 pb-1 text-[11px]">
+                          <div className="flex items-center gap-1.5 font-bold text-white">
+                            <span className="px-1.5 py-0.2 text-[9px] rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 uppercase">
+                              {typeLabel}
+                            </span>
+                            <UserCheck className="w-3 h-3 text-cyan-400" />
+                            <span>{entry.author || 'User'}</span>
+                          </div>
+                          <span className="font-mono text-slate-400">{formattedDate}</span>
+                        </div>
+                        <div className="text-xs text-slate-200 leading-relaxed pt-1 whitespace-pre-wrap">
+                          {entry.note}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end border-t border-slate-800 pt-3">
+              <button
+                type="button"
+                onClick={() => setHistoryTargetEnquiry(null)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

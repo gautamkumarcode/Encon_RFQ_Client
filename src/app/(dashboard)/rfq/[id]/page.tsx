@@ -656,10 +656,11 @@ export default function EnquiryDetailPage() {
   const [selectedImage, setSelectedImage] = useState<{ src: string; filename: string } | null>(null);
 
   // Client Call Logger State
-  const [callDate, setCallDate] = useState(new Date().toISOString().split('T')[0]);
+  const [callDate, setCallDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [callNote, setCallNote] = useState('');
   const [nextFollowup, setNextFollowup] = useState('');
   const [loggingCall, setLoggingCall] = useState(false);
+  const [followupType, setFollowupType] = useState<string>('Call');
 
   const handleLogCall = async () => {
     if (!callNote.trim()) {
@@ -669,28 +670,31 @@ export default function EnquiryDetailPage() {
 
     setLoggingCall(true);
     try {
-      const timestampHeader = `[Call Log - ${callDate}]`;
-      const newEntry = `${timestampHeader} ${callNote.trim()}`;
-      const updatedFollowup = enquiry.followupRemarks ? `${newEntry}\n\n${enquiry.followupRemarks}` : newEntry;
-
-      const payload: Partial<Enquiry> = {
-        ...enquiry,
-        lastCallDate: callDate,
-        nextActionDate: nextFollowup || enquiry.nextActionDate || '',
-        followupRemarks: updatedFollowup,
-      };
-
       if (enquiryId) {
-        await rfqService.updateEnquiry(enquiryId, payload);
+        await rfqService.addFollowup(enquiryId, {
+          type: followupType,
+          note: callNote.trim(),
+          nextActionDate: nextFollowup || enquiry.nextActionDate || '',
+          lastCallDate: callDate,
+        });
         await queryClient.invalidateQueries({ queryKey: ['enquiry', enquiryId] });
         await queryClient.invalidateQueries({ queryKey: ['rfq-tracker'] });
+      } else {
+        const timestampHeader = `[${followupType} - ${callDate}]`;
+        const newEntry = `${timestampHeader} ${callNote.trim()}`;
+        const updatedFollowup = enquiry.followupRemarks ? `${newEntry}\n\n${enquiry.followupRemarks}` : newEntry;
+        setEnquiry({
+          ...enquiry,
+          lastCallDate: callDate,
+          nextActionDate: nextFollowup || enquiry.nextActionDate || '',
+          followupRemarks: updatedFollowup,
+        });
       }
 
-      setEnquiryForm({});
       setCallNote('');
-      showToast('Client Call Logged 📞', `Call update recorded for ${callDate}!`, 'success');
+      showToast('Follow-up Recorded 📞', `${followupType} entry saved!`, 'success');
     } catch (err: any) {
-      showToast('Error', err.message || 'Failed to log client call', 'error');
+      showToast('Error', err.message || 'Failed to record follow-up', 'error');
     } finally {
       setLoggingCall(false);
     }
@@ -740,6 +744,35 @@ export default function EnquiryDetailPage() {
     const base = isNew ? defaultNewForm : (fetchedEnquiry || {});
     return { ...base, ...enquiryForm };
   }, [fetchedEnquiry, enquiryForm, isNew]);
+
+  const followupsList = useMemo(() => {
+    if (Array.isArray(enquiry.followups) && enquiry.followups.length > 0) {
+      return [...enquiry.followups].reverse();
+    }
+    if (!enquiry.followupRemarks) return [];
+    return enquiry.followupRemarks
+      .split(/\n\n+/)
+      .filter(Boolean)
+      .map((entry: string, idx: number) => {
+        const match = entry.match(/^\[(?:📞\s*)?Call Log\s*-\s*([^\]]+)\]\s*([\s\S]*)/);
+        if (match) {
+          return {
+            _id: `legacy-${idx}`,
+            type: 'Call',
+            note: match[2].trim(),
+            author: enquiry.assignedTo || enquiry.companyName || 'Team Member',
+            createdAt: match[1].trim(),
+          };
+        }
+        return {
+          _id: `legacy-${idx}`,
+          type: 'Remark',
+          note: entry.trim(),
+          author: enquiry.assignedTo || 'Team Member',
+          createdAt: enquiry.dateReceived || '',
+        };
+      });
+  }, [enquiry.followups, enquiry.followupRemarks, enquiry.assignedTo, enquiry.companyName, enquiry.dateReceived]);
 
   const questionnaireFiles = useMemo(() => {
     if (!enquiry.attachments) return [];
@@ -1588,10 +1621,10 @@ export default function EnquiryDetailPage() {
                 </div>
                 <div>
                   <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-                    Client Call & Interaction Log
+                    Client Call & Follow-up History Log
                   </h3>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    Record client phone discussions, technical updates, and next follow-up dates.
+                    Record discussions, follow-ups, and track who wrote each remark entry.
                   </p>
                 </div>
               </div>
@@ -1602,84 +1635,139 @@ export default function EnquiryDetailPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Call Date</label>
-                <input
-                  type="date"
-                  value={callDate}
-                  onChange={(e) => setCallDate(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-medium focus:border-cyan-500 focus:outline-none shadow-xs"
-                />
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 mr-1">Log Type:</span>
+                {[
+                  { key: 'Call', label: '📞 Phone Call' },
+                  { key: 'Followup', label: '🔄 Follow-up' },
+                  { key: 'Email', label: '✉️ Email' },
+                  { key: 'Meeting', label: '🤝 Meeting' },
+                  { key: 'Remark', label: '📝 Remark' },
+                ].map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => setFollowupType(t.key)}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${followupType === t.key
+                      ? 'bg-cyan-600 text-white border-cyan-500 font-bold shadow-xs'
+                      : 'bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-cyan-400'
+                      }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Date</label>
+                  <input
+                    type="date"
+                    value={callDate}
+                    onChange={(e) => setCallDate(e.target.value)}
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-medium focus:border-cyan-500 focus:outline-none shadow-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Next Follow-up Date</label>
+                  <input
+                    type="date"
+                    value={nextFollowup || enquiry.nextActionDate || ''}
+                    onChange={(e) => {
+                      setNextFollowup(e.target.value);
+                      setEnquiry({ ...enquiry, nextActionDate: e.target.value });
+                    }}
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-medium focus:border-cyan-500 focus:outline-none shadow-xs"
+                  />
+                </div>
+
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    disabled={loggingCall}
+                    onClick={handleLogCall}
+                    className="w-full py-2 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> {loggingCall ? 'Saving...' : `Add ${followupType} Entry`}
+                  </button>
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Next Follow-up Date</label>
-                <input
-                  type="date"
-                  value={nextFollowup || enquiry.nextActionDate || ''}
-                  onChange={(e) => {
-                    setNextFollowup(e.target.value);
-                    setEnquiry({ ...enquiry, nextActionDate: e.target.value });
-                  }}
-                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-medium focus:border-cyan-500 focus:outline-none shadow-xs"
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Follow-up / Call Notes & Discussion Details *</label>
+                <textarea
+                  rows={2}
+                  placeholder={`Enter ${followupType.toLowerCase()} discussion details, customer commitments, technical requirements...`}
+                  value={callNote}
+                  onChange={(e) => setCallNote(e.target.value)}
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3.5 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-cyan-500 focus:outline-none font-medium shadow-xs"
                 />
               </div>
-
-              <div className="flex items-end">
-                <button
-                  type="button"
-                  disabled={loggingCall}
-                  onClick={handleLogCall}
-                  className="w-full py-2 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs transition-all flex items-center justify-center gap-1.5"
-                >
-                  <Phone className="w-3.5 h-3.5" /> {loggingCall ? 'Logging Call...' : 'Log Call'}
-                </button>
-              </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">New Call Notes / Discussion Summary</label>
-              <input
-                type="text"
-                placeholder="e.g. Spoke with client. Confirmed gas inlet temp is 450°C. Promised offer by Friday."
-                value={callNote}
-                onChange={(e) => setCallNote(e.target.value)}
-                className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-cyan-500 focus:outline-none font-medium shadow-xs"
-              />
-            </div>
+            {/* Timeline History List */}
+            {followupsList.length > 0 && (
+              <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800/80">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Follow-up & Remarks Timeline ({followupsList.length})
+                  </label>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Newest first</span>
+                </div>
+                <div className="bg-slate-100/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl p-3 max-h-64 overflow-y-auto space-y-2.5 custom-scrollbar">
+                  {followupsList.map((entry: any, idx: number) => {
+                    const typeLabel = entry.type || 'Remark';
+                    const isCall = typeLabel === 'Call';
+                    const isEmail = typeLabel === 'Email';
+                    const isMeeting = typeLabel === 'Meeting';
 
-            {enquiry.followupRemarks && (
-              <div className="space-y-2 pt-1">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Call & Follow-up Log History
-                </label>
-                <div className="bg-slate-100/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl p-3 max-h-52 overflow-y-auto space-y-2 custom-scrollbar">
-                  {enquiry.followupRemarks
-                    .split(/\n\n+/)
-                    .filter(Boolean)
-                    .map((entry: string, idx: number) => {
-                      const match = entry.match(/^\[(?:📞\s*)?Call Log\s*-\s*([^\]]+)\]\s*([\s\S]*)/);
-                      if (match) {
-                        const dateStr = match[1].trim();
-                        const noteContent = match[2].trim();
-                        return (
-                          <div key={idx} className="p-2.5 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 flex items-start gap-3 shadow-2xs">
-                            <div className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-mono font-semibold text-slate-700 dark:text-slate-300 shrink-0">
-                              {dateStr}
-                            </div>
-                            <div className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans font-medium flex-1">
-                              {noteContent}
+                    const formattedDate = entry.createdAt
+                      ? (isNaN(new Date(entry.createdAt).getTime()) ? entry.createdAt : new Date(entry.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }))
+                      : 'N/A';
+
+                    return (
+                      <div
+                        key={entry._id || entry.id || idx}
+                        className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800/90 shadow-2xs space-y-1.5"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/60 pb-1.5">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${isCall
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                                : isEmail
+                                  ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30'
+                                  : isMeeting
+                                    ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30'
+                                    : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                                }`}
+                            >
+                              {typeLabel}
+                            </span>
+                            <div className="flex items-center gap-1 text-xs font-bold text-slate-900 dark:text-slate-100">
+                              <UserCheck className="w-3.5 h-3.5 text-cyan-500" />
+                              <span>{entry.author || 'User'}</span>
                             </div>
                           </div>
-                        );
-                      }
-                      return (
-                        <div key={idx} className="p-2.5 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans font-medium">
-                          {entry}
+                          <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                            {formattedDate}
+                          </div>
                         </div>
-                      );
-                    })}
+
+                        <div className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans font-medium whitespace-pre-wrap pt-0.5">
+                          {entry.note}
+                        </div>
+
+                        {entry.nextActionDate && (
+                          <div className="text-[10px] font-semibold text-cyan-600 dark:text-cyan-400 flex items-center gap-1 pt-1">
+                            <Clock className="w-3 h-3" /> Next Follow-up Scheduled: {entry.nextActionDate}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
