@@ -17,6 +17,21 @@ import {
   Lock,
 } from 'lucide-react';
 
+const MODULE_CONFIG: Record<string, { label: string; desc: string; category?: string }> = {
+  USER_MGMT: { label: 'User Management', desc: 'Manage user accounts, status, and role assignments', category: 'SYSTEM' },
+  ROLE_MGMT: { label: 'Role & Permission Matrix', desc: 'Configure custom roles and manage RBAC matrices', category: 'SYSTEM' },
+  APP_MGMT: { label: 'Application Access', desc: 'Grant or revoke single sign-on access to connected apps', category: 'SYSTEM' },
+  DASHBOARD: { label: 'Executive Dashboard', desc: 'View high-level KPIs and operational metrics', category: 'SYSTEM' },
+  ANALYTICS: { label: 'Analytics & Reporting', desc: 'View technical, commercial, and performance analytics', category: 'SYSTEM' },
+  ACTIVITY_LOGS: { label: 'Audit Activity Logs', desc: 'Inspect system activity trails and security logs', category: 'SYSTEM' },
+  NOTIFICATIONS: { label: 'Notifications Center', desc: 'Manage automated email broadcasts and system notifications', category: 'SYSTEM' },
+  RFQ_MGMT: { label: 'RFQ - General Management', desc: 'Create, view, assign, and manage RFQ tracker entries', category: 'RFQ' },
+  RFQ_COSTING: { label: 'RFQ - Costing Tools', desc: 'Access and compute costing sheets (Tundish Dryer, VLPH, Ladle Dryer, etc.)', category: 'RFQ' },
+  RFQ_REVIEW: { label: 'RFQ - Review & Verification', desc: 'Perform technical/commercial review and verification stage checks', category: 'RFQ' },
+  RFQ_APPROVAL: { label: 'RFQ - Manager Approval', desc: 'Grant final managerial sign-off and approval on RFQs', category: 'RFQ' },
+  RFQ_OFFERS: { label: 'RFQ - Offer Generator', desc: 'Generate official PDF proposal offers and sync with Offer Generator', category: 'RFQ' },
+};
+
 export default function RoleManagementPage() {
   const queryClient = useQueryClient();
   const { showToast, showConfirm } = useNotification();
@@ -158,7 +173,7 @@ export default function RoleManagementPage() {
               Role & Permission Matrix
             </h1>
             <p className="text-[11px] text-slate-400">
-              Configure granular role-based access control (RBAC) across system modules
+              Configure granular role-based access control (RBAC) across system & RFQ sub-modules
             </p>
           </div>
         </div>
@@ -258,18 +273,30 @@ export default function RoleManagementPage() {
             {modulesList.map((mod) => {
               const modPerms = permissions.filter((p) => p.module === mod);
               const allModSelected = modPerms.every((p) => selectedPermIds.includes(p.id)) || activeRole.name === 'ADMIN';
+              const cfg = MODULE_CONFIG[mod] || { label: `${mod} Module`, desc: 'Manage module access permissions', category: 'SYSTEM' };
 
               return (
                 <div key={mod} className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-thermal-400 uppercase tracking-wider">
-                      {mod} Module
-                    </h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-xs font-bold text-thermal-400 uppercase tracking-wider">
+                          {cfg.label}
+                        </h3>
+                        {cfg.category === 'RFQ' && (
+                          <span className="px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-[9px] font-extrabold text-emerald-400 rounded-md">
+                            RFQ Sub-Module
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-0.5">{cfg.desc}</p>
+                    </div>
+
                     {activeRole.name !== 'ADMIN' && (
                       <button
                         type="button"
                         onClick={() => toggleModuleAll(mod)}
-                        className="text-[10px] font-bold text-slate-400 hover:text-white underline"
+                        className="text-[10px] font-bold text-slate-400 hover:text-white underline shrink-0"
                       >
                         {allModSelected ? 'Deselect Module' : 'Select All in Module'}
                       </button>
