@@ -115,6 +115,8 @@ export default function EnquiryDetailPage() {
 					note: callNote.trim(),
 					nextActionDate: nextFollowup || enquiry.nextActionDate || "",
 					lastCallDate: callDate,
+					logDate: callDate,
+					createdAt: callDate,
 				});
 
 				if (res?.data) {

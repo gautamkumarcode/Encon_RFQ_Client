@@ -251,7 +251,17 @@ export const rfqService = {
     return res.data;
   },
 
-  addFollowup: async (id: string | number, payload: { note: string; type?: string; nextActionDate?: string; lastCallDate?: string }) => {
+  addFollowup: async (
+    id: string | number,
+    payload: {
+      note: string;
+      type?: string;
+      nextActionDate?: string;
+      lastCallDate?: string;
+      logDate?: string;
+      createdAt?: string;
+    }
+  ) => {
     const res = await api.post(`/rfq/${id}/followup`, payload);
     return res.data;
   },

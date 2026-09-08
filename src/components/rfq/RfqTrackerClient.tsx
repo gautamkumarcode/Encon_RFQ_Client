@@ -319,6 +319,8 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
         type: historyModalType,
         note: historyModalNote.trim(),
         lastCallDate: historyModalDate,
+        logDate: historyModalDate,
+        createdAt: historyModalDate,
       });
       fetchTrackerData();
       if (res.data) {
