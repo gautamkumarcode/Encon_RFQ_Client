@@ -174,13 +174,16 @@ html.light .fixed.inset-0.bg-black\/70 {
   width: 5px;
   height: 5px;
 }
+
 ::-webkit-scrollbar-track {
   background: #0b0f17;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #1f2937;
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #f97316;
 }
@@ -188,9 +191,11 @@ html.light .fixed.inset-0.bg-black\/70 {
 html.light ::-webkit-scrollbar-track {
   background: #f1f5f9;
 }
+
 html.light ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
 }
+
 html.light ::-webkit-scrollbar-thumb:hover {
   background: #f97316;
 }
@@ -204,6 +209,7 @@ html.light ::-webkit-scrollbar-thumb:hover {
 .glass-card-hover {
   transition: all 0.15s ease-in-out;
 }
+
 .glass-card-hover:hover {
   border-color: #334155;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);

@@ -43,6 +43,7 @@ import {
 import { rfqService, Enquiry, RfqStats, DirectoryItem, Attachment } from '@/services/rfqService';
 import { useNotification } from '@/context/NotificationContext';
 import { useAuth } from '@/context/AuthContext';
+import { getRolePermissions } from '@/utils/rfqPermissions';
 
 const STATUS_OPTIONS = ['Open', 'Incomplete', 'Under review', 'Verified', 'Approved', 'Offer Sent', 'PO Received', 'REGRET', 'Closed'];
 
@@ -69,11 +70,11 @@ const getPageNumbers = (currentPage: number, totalPages: number): (number | stri
   if (totalPages <= 7) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
-  if (currentPage <= 3) {
-    return [1, 2, 3, 4, '...', totalPages];
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, '...', totalPages];
   }
-  if (currentPage >= totalPages - 2) {
-    return [1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+  if (currentPage >= totalPages - 3) {
+    return [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
   }
   return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
 };
@@ -88,11 +89,7 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
   const queryClient = useQueryClient();
   const { showToast, showConfirm } = useNotification();
   const { user } = useAuth();
-  const userRole = (user?.role || '').toUpperCase();
-  const isFullAccessRole = ['ADMIN', 'CO', 'GM', 'PRODUCTION_HEAD', 'SALES_MARKETING'].includes(userRole);
-  const canReview = ['ADMIN', 'CO', 'GM', 'PRODUCTION_HEAD'].includes(userRole);
-  const canEdit = ['ADMIN', 'CO', 'GM', 'PRODUCTION_HEAD', 'SALES_MARKETING'].includes(userRole);
-  const isTechnicalOnly = userRole === 'TECHNICAL_PERSON';
+  const { canReview, canEdit, isTechnicalOnly } = getRolePermissions(user?.role);
 
   const initialTab = getTabFromUrl(searchParams.get('tab')) || 'all';
   const initialSearch = searchParams.get('search') || '';
@@ -523,12 +520,6 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
                 <Plus className="w-4 h-4 stroke-[2.5]" /> New Enquiry
               </button>
             )}
-            <button
-              onClick={handleOpenDirectory}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all"
-            >
-              <BookOpen className="w-4 h-4 text-cyan-400" /> Assignee Directory
-            </button>
             {canEdit && (
               <button
                 onClick={() => setIsImportOpen(true)}
@@ -537,14 +528,16 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
                 <Upload className="w-4 h-4 text-amber-400" /> Import Excel
               </button>
             )}
-            <button
-              onClick={handleSyncInbox}
-              disabled={syncingInbox}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all disabled:opacity-50"
-            >
-              <Mail className={`w-4 h-4 text-cyan-400 ${syncingInbox ? 'animate-bounce' : ''}`} />
-              {syncingInbox ? 'Syncing Email...' : 'Sync Email Inbox'}
-            </button>
+            {!isTechnicalOnly && (
+              <button
+                onClick={handleSyncInbox}
+                disabled={syncingInbox}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all disabled:opacity-50"
+              >
+                <Mail className={`w-4 h-4 text-cyan-400 ${syncingInbox ? 'animate-bounce' : ''}`} />
+                {syncingInbox ? 'Syncing Email...' : 'Sync Email Inbox'}
+              </button>
+            )}
           </div>
 
           <button

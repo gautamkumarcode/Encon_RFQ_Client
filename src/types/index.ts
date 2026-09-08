@@ -72,7 +72,9 @@ export interface NotificationItem {
 export interface DashboardSummary {
   summaryCards: {
     totalRFQs: number;
+    totalLiveRFQs?: number;
     totalOffersGenerated: number;
+    offersSentRFQs?: number;
     pendingRFQs: number;
     pendingOffers: number;
     approvedRFQs: number;

@@ -8,6 +8,8 @@ import {
 	ArrowLeft,
 	CheckCircle2,
 	CheckSquare,
+	ChevronDown,
+	ChevronUp,
 	Clock,
 	Download,
 	ExternalLink,
@@ -33,702 +35,14 @@ import {
 	rfqService,
 } from "../../../../services/rfqService";
 
-function isImageFile(att: {
-	filename?: string;
-	contentType?: string;
-}): boolean {
-	if (!att) return false;
-	const ct = (att.contentType || "").toLowerCase();
-	const fn = (att.filename || "").toLowerCase();
-	if (ct.startsWith("image/")) return true;
-	return /\.(gif|png|jpe?g|webp|svg|bmp|tiff?)$/i.test(fn);
-}
-
-function formatFileSize(bytes?: number): string {
-	if (!bytes || bytes <= 0) return "Doc";
-	if (bytes < 1024 * 1024) {
-		return `${(bytes / 1024).toFixed(1)} KB`;
-	}
-	return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-}
-
-function decodeHtmlEntities(str: string): string {
-	if (!str) return "";
-	return str
-		.replace(/&nbsp;/gi, " ")
-		.replace(/&amp;/gi, "&")
-		.replace(/&lt;/gi, "<")
-		.replace(/&gt;/gi, ">")
-		.replace(/&quot;/gi, '"')
-		.replace(/&#39;/gi, "'")
-		.replace(/&#x27;/gi, "'")
-		.replace(/&#x2F;/gi, "/")
-		.replace(/&#039;/gi, "'")
-		.replace(/&ndash;/gi, "–")
-		.replace(/&mdash;/gi, "—")
-		.replace(/&rsquo;/gi, "’")
-		.replace(/&lsquo;/gi, "‘")
-		.replace(/&rdquo;/gi, "”")
-		.replace(/&ldquo;/gi, "“")
-		.replace(/&#160;/gi, " ");
-}
-
-interface ThreadMessage {
-	id: number;
-	sender: string;
-	email: string;
-	date: string;
-	body: string;
-	isCompany: boolean;
-}
-
-function isEnconCompanyAddr(emailAddr: string): boolean {
-	if (!emailAddr) return false;
-	const lower = emailAddr.toLowerCase().trim();
-	return (
-		lower.endsWith("@encon.co.in") ||
-		lower.endsWith("@encon.in") ||
-		lower === "encon.co.in" ||
-		lower === "encon.in"
-	);
-}
-
-function extractEmailFromText(text: string): string {
-	if (!text) return "";
-	const match = text.match(/[\w.+-]+@[\w.-]+\.\w{2,}/);
-	return match ? match[0] : "";
-}
-
-function extractNameFromText(text: string): string {
-	if (!text) return "";
-	const nutanMatch = text.match(
-		/(Nutan\s+Kumari|Shikha|Rupanjana|Rupanjana\s+Mitra|ENCON\s+Thermal|ENCON\s+Team)/i,
-	);
-	if (nutanMatch) return nutanMatch[1];
-	return "";
-}
-
-function parseEmailThreadMessages(
-	rawText: string,
-	defaultSender: string,
-	defaultEmail: string,
-	defaultDate: string,
-): ThreadMessage[] {
-	if (!rawText) return [];
-
-	let text = rawText
-		.replace(/<style[\s\S]*?<\/style>/gi, "")
-		.replace(/<script[\s\S]*?<\/script>/gi, "")
-		.replace(/<br\s*\/?>/gi, "\n")
-		.replace(/<\/p>/gi, "\n\n")
-		.replace(/<\/div>/gi, "\n")
-		.replace(/<\/tr>/gi, "\n")
-		.replace(/<\/li>/gi, "\n")
-		.replace(/<hr\s*\/?>/gi, "\n---\n")
-		.replace(/<[^>]+>/g, "")
-		.replace(/\r\n/g, "\n");
-
-	if (text.includes("=3D") || text.includes("=20") || text.includes("=\n")) {
-		text = text
-			.replace(/=\r?\n/g, "")
-			.replace(/=3D/g, "=")
-			.replace(/=20/g, " ")
-			.replace(/=0A/gi, "\n")
-			.replace(/=0D/gi, "");
-	}
-
-	// Strip raw MIME boundary markers, preambles, attachment filenames, and Base64 noise
-	text = text
-		.replace(
-			/This is a multipart message in MIME format\.?\s*(?:boundary=.*)?/gim,
-			"",
-		)
-		.replace(/^--?=?[_a-zA-Z0-9.-]+.*$/gm, "")
-		.replace(/_NextPart_[a-zA-Z0-9._-]+(?:--)?/g, "")
-		.replace(
-			/^\s*(?:Content-Type|Content-Transfer-Encoding|Content-Disposition|Content-ID|MIME-Version):\s*.*$/gim,
-			"",
-		)
-		.replace(/^\s*(?:filename|name)\s*=\s*"?[^";\r\n]+"?.*$/gim, "")
-		.replace(/\bcharset="?[a-z0-9_-]+"?/gim, "")
-		.replace(/^[a-zA-Z0-9+/=]{40,}$/gm, "")
-		.replace(/[a-zA-Z0-9+/=]{60,}/g, "")
-		.replace(/'"/g, '"');
-
-	text = decodeHtmlEntities(text).trim();
-
-	// Split on all standard thread message boundaries
-	const splitRegex =
-		/(?:\n\s*|\n?)(?=(?:---+\s*Thread Update.*?:?|On\s+.*?\s+wrote:|-{3,}\s*(?:Original Message|Forwarded message)\s*-{3,}|From:\s*.*?(?:\r?\n|$)|-{5,}\s*Forwarded message\s*-{5,}))/gi;
-	const rawBlocks = text
-		.split(splitRegex)
-		.map((b) => b.trim())
-		.filter((b) => b.length > 5);
-
-	if (rawBlocks.length === 0) {
-		const isComp = isEnconCompanyAddr(text) || isEnconCompanyAddr(defaultEmail);
-		return [
-			{
-				id: 1,
-				sender: isComp
-					? extractNameFromText(text) || "ENCON Team"
-					: defaultSender || "Customer",
-				email: isComp
-					? extractEmailFromText(text) || "mdo@encon.co.in"
-					: defaultEmail,
-				date: defaultDate,
-				body: text.replace(/^>+\s?/gm, "").trim(),
-				isCompany: isComp,
-			},
-		];
-	}
-
-	const messages: ThreadMessage[] = [];
-
-	rawBlocks.forEach((block, idx) => {
-		let sender = "";
-		let email = "";
-		let dateStr = defaultDate;
-		let body = block;
-
-		// Pattern 1: --- Thread Update (2026-08-20) from Nutan Kumari (mdo@encon.co.in) ---
-		const threadUpdateMatch = block.match(
-			/^---+\s*Thread Update\s*\((.*?)\)\s*from\s*(.*?)\s*\((.*?)\)\s*---+/i,
-		);
-		if (threadUpdateMatch) {
-			dateStr = threadUpdateMatch[1].trim() || dateStr;
-			sender = threadUpdateMatch[2].trim();
-			email = threadUpdateMatch[3].trim();
-			body = block.replace(/^---+.*?---+/i, "").trim();
-		} else {
-			// Pattern 2: On Thu, Aug 20, 2026 ... Denis Karma <denis.karma@jindalstainless.com> wrote:
-			const wroteMatch = block.match(/^On\s+([^\n]+?)\s+wrote:/i);
-			if (wroteMatch) {
-				const headerInfo = wroteMatch[1];
-				const emailM = headerInfo.match(/<([^>]+)>/);
-				if (emailM) email = emailM[1].trim();
-
-				const cleanHeader = headerInfo.replace(/<[^>]+>/g, "").trim();
-				const parts = cleanHeader.split(",");
-				if (parts.length > 1) {
-					sender = parts[parts.length - 1].trim();
-					dateStr =
-						parts
-							.slice(0, parts.length - 1)
-							.join(",")
-							.trim() || dateStr;
-				} else {
-					sender = cleanHeader;
-				}
-				body = block.replace(/^On\s+[^\n]+?\s+wrote:/i, "").trim();
-			} else {
-				// Pattern 3: From: ... Sent: ... / ---------- Forwarded message ---------
-				const fromMatch = block.match(
-					/(?:From:\s*([^\n]+)|-{3,}\s*Forwarded message\s*-{3,}[\s\S]*?From:\s*([^\n]+))/i,
-				);
-				if (fromMatch) {
-					const fromLine = fromMatch[1] || fromMatch[2];
-					const emailM =
-						fromLine.match(/<([^>]+)>/) ||
-						fromLine.match(/[\w.+-]+@[\w.-]+\.\w{2,}/);
-					if (emailM) email = (emailM[1] || emailM[0]).trim();
-
-					const nameM = fromLine
-						.replace(/<[^>]+>/g, "")
-						.replace(/^"|"$/g, "")
-						.trim();
-					if (nameM && !nameM.includes("@")) sender = nameM;
-
-					const sentMatch = block.match(/^(?:Sent|Date):\s*([^\n]+)/im);
-					if (sentMatch) dateStr = sentMatch[1].trim();
-
-					body = block
-						.replace(/^-\s*Forwarded message\s*-+/i, "")
-						.replace(
-							/^-{3,}\s*(?:Original Message|Forwarded message)\s*-{3,}/i,
-							"",
-						)
-						.replace(/^From:\s*[^\n]+/im, "")
-						.replace(/^(?:Sent|Date):\s*[^\n]+/im, "")
-						.replace(/^To:\s*[^\n]+/im, "")
-						.replace(/^Subject:\s*[^\n]+/im, "")
-						.trim();
-				}
-			}
-		}
-
-		body = body
-			.split("\n")
-			.map((l) => l.replace(/^>+\s?/, ""))
-			.join("\n")
-			.trim();
-
-		if (!email) {
-			email = extractEmailFromText(block);
-		}
-
-		const isCompanyBlock = isEnconCompanyAddr(email);
-
-		if (!sender) {
-			if (isCompanyBlock) {
-				const foundName = extractNameFromText(body);
-				sender = foundName ? `${foundName} (ENCON)` : "ENCON Team";
-			} else {
-				sender = defaultSender || "Customer";
-			}
-		}
-
-		if (!email) {
-			email = isCompanyBlock ? "mdo@encon.co.in" : defaultEmail;
-		}
-
-		messages.push({
-			id: idx + 1,
-			sender,
-			email,
-			date: dateStr,
-			body: body || "(No message content)",
-			isCompany: isCompanyBlock,
-		});
-	});
-
-	return messages;
-}
-
-/* ─── Embedded Gmail MIME/HTML Email Viewer ─── */
-function GmailEmailViewer({
-	rawContent,
-	fromName,
-	fromEmail,
-	date,
-	subject,
-	attachments = [],
-	onSelectImage,
-}: {
-	rawContent: string;
-	fromName?: string;
-	fromEmail?: string;
-	date?: string;
-	subject?: string;
-	attachments?: Attachment[];
-	onSelectImage?: (img: { src: string; filename: string }) => void;
-}) {
-	const [viewMode, setViewMode] = useState<"original" | "gmail" | "chat">(
-		"gmail",
-	);
-	const [internalSelectedImage, setInternalSelectedImage] = useState<{
-		src: string;
-		filename: string;
-	} | null>(null);
-	const [iframeHeight, setIframeHeight] = useState(450);
-	const iframeRef = useRef<HTMLIFrameElement>(null);
-
-	const handleSelectImage = (img: { src: string; filename: string }) => {
-		if (onSelectImage) {
-			onSelectImage(img);
-		} else {
-			setInternalSelectedImage(img);
-		}
-	};
-
-	const cleanBody = (text: string): { srcDoc: string; plainText: string } => {
-		if (!text) return { srcDoc: "", plainText: "" };
-
-		let cleaned = text
-			.replace(/^\*\s+\d+\s+FETCH\s+\(BODY\.PEEK\[\]\s+\{\d+\}\r?\n/i, "")
-			.replace(/\)\s+A\d+\s+OK.*$/gi, "")
-			.replace(/Content-Type:\s*text\/[a-z]+;?\s*charset="?[a-z0-9_-]+"?/gi, "")
-			.replace(/Content-Transfer-Encoding:\s*quoted-printable/gi, "")
-			.replace(/Content-Transfer-Encoding:\s*8bit/gi, "")
-			.replace(/--[a-zA-Z0-9_.-]+--?/g, "")
-			.trim();
-
-		if (
-			cleaned.includes("=3D") ||
-			cleaned.includes("=20") ||
-			cleaned.includes("=\r\n") ||
-			cleaned.includes("=\n")
-		) {
-			cleaned = cleaned
-				.replace(/=\r?\n/g, "")
-				.replace(/=3D/g, "=")
-				.replace(/=20/g, " ")
-				.replace(/=0A/gi, "\n")
-				.replace(/=0D/gi, "");
-		}
-
-		const isHtml = /<html|<body|<div|<p|<table|<br/i.test(cleaned);
-
-		let srcDoc = "";
-		if (isHtml) {
-			srcDoc = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; color: #1e293b; margin: 16px; line-height: 1.6; word-break: break-word; }
-            img { max-width: 100%; height: auto; border-radius: 8px; margin: 8px 0; }
-            a { color: #f97316; }
-            blockquote { border-left: 3px solid #cbd5e1; margin-left: 0; padding-left: 12px; color: #64748b; }
-            table { border-collapse: collapse; max-width: 100%; width: 100%; }
-            td, th { border: 1px solid #e2e8f0; padding: 6px 10px; }
-            pre { white-space: pre-wrap; word-break: break-word; font-family: inherit; }
-          </style>
-        </head>
-        <body>${cleaned}</body>
-        </html>
-      `;
-		} else {
-			const safeText = decodeHtmlEntities(cleaned)
-				.replace(/&/g, "&amp;")
-				.replace(/</g, "&lt;")
-				.replace(/>/g, "&gt;");
-			srcDoc = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: system-ui, sans-serif; font-size: 13px; color: #1e293b; white-space: pre-wrap; word-break: break-word; margin: 16px; line-height: 1.6; }
-          </style>
-        </head>
-        <body>${safeText}</body>
-        </html>
-      `;
-		}
-
-		const plainText = decodeHtmlEntities(
-			cleaned
-				.replace(/<style[\s\S]*?<\/style>/gi, "")
-				.replace(/<script[\s\S]*?<\/script>/gi, "")
-				.replace(/<[^>]+>/g, " ")
-				.replace(/\s+/g, " "),
-		).trim();
-
-		return { srcDoc, plainText };
-	};
-
-	const { srcDoc, plainText } = cleanBody(rawContent);
-
-	const handleIframeLoad = () => {
-		try {
-			if (iframeRef.current && iframeRef.current.contentWindow) {
-				const bodyHeight =
-					iframeRef.current.contentWindow.document.body.scrollHeight;
-				if (bodyHeight > 100) {
-					setIframeHeight(Math.min(Math.max(bodyHeight + 40, 250), 700));
-				}
-			}
-		} catch (e) {}
-	};
-
-	const chatMessages = useMemo(() => {
-		return parseEmailThreadMessages(
-			rawContent,
-			fromName || "Customer",
-			fromEmail || "",
-			date || "",
-		);
-	}, [rawContent, fromName, fromEmail, date]);
-
-	const displaySenderName = useMemo(() => {
-		const isClientEmail = fromEmail && !isEnconCompanyAddr(fromEmail);
-		const isInternalName = (n?: string) => {
-			if (!n) return false;
-			const lower = n.toLowerCase();
-			return ["nutan", "shikha", "rupanjana", "encon"].some((k) =>
-				lower.includes(k),
-			);
-		};
-		if (isClientEmail && isInternalName(fromName)) {
-			return "Customer";
-		}
-		return fromName || "Customer";
-	}, [fromName, fromEmail]);
-
-	const firstReceivedDate = useMemo(() => {
-		if (chatMessages.length > 0) {
-			const oldest = chatMessages[chatMessages.length - 1];
-			if (oldest.date) return oldest.date;
-		}
-		return date || "Recent";
-	}, [chatMessages, date]);
-
-	const latestUpdateDate = useMemo(() => {
-		if (chatMessages.length > 1) {
-			const newest = chatMessages[0];
-			if (newest.date && newest.date !== firstReceivedDate) return newest.date;
-		}
-		return null;
-	}, [chatMessages, firstReceivedDate]);
-
-	return (
-		<div className="rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 p-4 md:p-5 h-full flex flex-col justify-between space-y-4 shadow-2xs">
-			<div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3 shrink-0">
-				<div className="flex items-center gap-3">
-					<div className="w-10 h-10 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-bold flex items-center justify-center border border-cyan-500/30 text-sm shrink-0">
-						{(displaySenderName || "CU").substring(0, 2).toUpperCase()}
-					</div>
-					<div>
-						<h4 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
-							{displaySenderName}
-							{fromEmail && (
-								<span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 font-normal">
-									&lt;{fromEmail}&gt;
-								</span>
-							)}
-						</h4>
-						<p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-							Subject:{" "}
-							<span className="text-slate-800 dark:text-slate-200 font-medium">
-								{subject}
-							</span>{" "}
-							· First Received:{" "}
-							<span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-								{firstReceivedDate}
-							</span>
-							{latestUpdateDate && (
-								<>
-									{" "}
-									· Last Update:{" "}
-									<span className="text-cyan-600 dark:text-cyan-400 font-medium">
-										{latestUpdateDate}
-									</span>
-								</>
-							)}
-						</p>
-					</div>
-				</div>
-
-				<div className="flex flex-wrap items-center gap-2">
-					{fromEmail && (
-						<a
-							href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(fromEmail)}&su=RE: ${encodeURIComponent(subject || "")}`}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-2xs transition-all flex items-center gap-1.5">
-							<Send className="w-3.5 h-3.5" /> Reply{" "}
-							<ExternalLink className="w-3 h-3" />
-						</a>
-					)}
-
-					<div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs max-w-full overflow-x-auto custom-scrollbar shrink-0 whitespace-nowrap">
-						<button
-							type="button"
-							onClick={() => setViewMode("original")}
-							className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 whitespace-nowrap transition-all ${
-								viewMode === "original"
-									? "bg-cyan-600 text-white font-bold shadow-2xs"
-									: "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-							}`}>
-							Original Email Body
-						</button>
-						<button
-							type="button"
-							onClick={() => setViewMode("gmail")}
-							className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 whitespace-nowrap transition-all ${
-								viewMode === "gmail"
-									? "bg-cyan-600 text-white font-bold shadow-2xs"
-									: "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-							}`}>
-							Gmail Reader Box
-						</button>
-						<button
-							type="button"
-							onClick={() => setViewMode("chat")}
-							className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 whitespace-nowrap transition-all ${
-								viewMode === "chat"
-									? "bg-cyan-600 text-white font-bold shadow-2xs"
-									: "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-							}`}>
-							Text Chat View ({chatMessages.length})
-						</button>
-					</div>
-				</div>
-			</div>
-
-			<div className="flex-1 min-h-[350px] h-[52vh] max-h-[55vh]">
-				{viewMode === "original" ? (
-					<div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3 h-full max-h-[55vh] overflow-y-auto overflow-x-auto custom-scrollbar">
-						<div className="text-xs text-slate-500 dark:text-slate-400 font-mono pb-2 border-b border-slate-200 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-2 sticky top-0 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-md z-10 pt-1">
-							<div>
-								From{" "}
-								<strong className="text-slate-800 dark:text-slate-200">
-									{fromName || "Customer"}
-								</strong>{" "}
-								{fromEmail && `<${fromEmail}>`} {date && `· ${date}`}
-							</div>
-							<div className="font-semibold text-slate-700 dark:text-slate-300">
-								{subject}
-							</div>
-						</div>
-						<pre className="whitespace-pre-wrap break-words font-sans text-xs text-slate-800 dark:text-slate-200 leading-relaxed pt-1 select-text">
-							{plainText || "(No email body content)"}
-						</pre>
-					</div>
-				) : viewMode === "gmail" ? (
-					<div className="rounded-xl border border-slate-200 bg-white shadow-inner overflow-hidden h-[54vh] max-h-[54vh]">
-						<iframe
-							ref={iframeRef}
-							srcDoc={srcDoc}
-							title="Gmail Email View"
-							onLoad={handleIframeLoad}
-							style={{ width: "100%", height: "100%", border: "none" }}
-							className="w-full h-full rounded-xl"
-							sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin"
-						/>
-					</div>
-				) : (
-					<div className="space-y-3 h-[54vh] max-h-[54vh] overflow-y-auto pr-1 custom-scrollbar">
-						{chatMessages.length === 0 ? (
-							<div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-400 text-center">
-								(No message content)
-							</div>
-						) : (
-							chatMessages.map((msg: ThreadMessage, idx: number) => (
-								<div
-									key={msg.id}
-									className={`flex flex-col ${
-										msg.isCompany
-											? "items-end ml-auto max-w-[88%]"
-											: "items-start mr-auto max-w-[88%]"
-									}`}>
-									<div
-										className={`w-full p-4 rounded-2xl space-y-2.5 shadow-lg border transition-all ${
-											msg.isCompany
-												? "bg-gradient-to-br from-amber-950/40 via-slate-900 to-obsidian-950 border-r-4 border-r-amber-500 border-amber-500/30 text-slate-100"
-												: "bg-gradient-to-br from-slate-900 via-slate-900 to-obsidian-950 border-l-4 border-l-cyan-500 border-slate-800 text-slate-200"
-										}`}>
-										<div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-2">
-											<div className="flex items-center gap-2.5">
-												<div
-													className={`w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center border ${
-														msg.isCompany
-															? "bg-amber-500/20 text-amber-400 border-amber-500/40"
-															: "bg-cyan-500/20 text-cyan-400 border-cyan-500/40"
-													}`}>
-													{(msg.sender || (msg.isCompany ? "EN" : "CU"))
-														.substring(0, 2)
-														.toUpperCase()}
-												</div>
-												<div>
-													<h5 className="text-xs font-bold text-white flex items-center gap-2">
-														{msg.sender}
-														{msg.email && (
-															<span className="text-[10px] text-slate-400 font-mono font-normal">
-																&lt;{msg.email}&gt;
-															</span>
-														)}
-													</h5>
-												</div>
-											</div>
-											<div className="flex items-center gap-2">
-												{msg.isCompany ? (
-													<span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold uppercase tracking-wider">
-														ENCON TEAM
-													</span>
-												) : (
-													<span className="text-[9px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold uppercase tracking-wider">
-														CUSTOMER
-													</span>
-												)}
-												{msg.date && (
-													<span className="text-[10px] text-slate-400 font-mono">
-														{msg.date}
-													</span>
-												)}
-											</div>
-										</div>
-										<div className="text-xs text-slate-200 whitespace-pre-wrap leading-relaxed font-sans pt-1">
-											{msg.body
-												? msg.body
-														.replace(/^--=[a-zA-Z0-9_.-]+.*$/gm, "")
-														.replace(/^--[a-zA-Z0-9_.-]+--?$/gm, "")
-														.replace(
-															/^\s*(?:Content-Type|Content-Transfer-Encoding|Content-Disposition|Content-ID):\s*.*$/gim,
-															"",
-														)
-														.replace(/^\s*filename="?[^";\r\n]+"?.*$/gim, "")
-														.replace(/^\s*name="?[^";\r\n]+"?.*$/gim, "")
-														.replace(/^[a-zA-Z0-9+/=]{60,}$/gm, "")
-														.replace(/\n{3,}/g, "\n\n")
-														.trim() || "(Attachment content included below)"
-												: "(Empty message body)"}
-										</div>
-									</div>
-								</div>
-							))
-						)}
-					</div>
-				)}
-			</div>
-
-			{/* FULL-SCREEN IMAGE / GIF LIGHTBOX MODAL */}
-			{internalSelectedImage && (
-				<div
-					className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in"
-					onClick={() => setInternalSelectedImage(null)}>
-					<div
-						className="relative max-w-4xl max-h-[90vh] bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl space-y-3"
-						onClick={(e) => e.stopPropagation()}>
-						<div className="flex items-center justify-between border-b border-slate-800 pb-2">
-							<h4 className="text-sm font-bold text-white flex items-center gap-2">
-								<ImageIcon className="w-4 h-4 text-cyan-400" />
-								{internalSelectedImage.filename}
-							</h4>
-							<div className="flex items-center gap-2">
-								<a
-									href={internalSelectedImage.src}
-									target="_blank"
-									rel="noopener noreferrer"
-									download={internalSelectedImage.filename}
-									className="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition-all flex items-center gap-1.5">
-									<Download className="w-3.5 h-3.5" /> Download
-								</a>
-								<button
-									type="button"
-									onClick={() => setInternalSelectedImage(null)}
-									className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white">
-									<X className="w-4 h-4" />
-								</button>
-							</div>
-						</div>
-						<div className="relative w-full max-h-[75vh] flex items-center justify-center overflow-auto rounded-xl bg-slate-950 p-2">
-							{/* eslint-disable-next-line @next/next/no-img-element */}
-							<img
-								src={internalSelectedImage.src}
-								alt={internalSelectedImage.filename}
-								className="max-h-[70vh] w-auto h-auto object-contain rounded-lg shadow-xl"
-								onError={(e) => {
-									(e.target as HTMLImageElement).src =
-										`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="100%" height="100%" fill="%230f172a"/><rect x="20" y="20" width="360" height="260" rx="12" fill="%231e293b" stroke="%23334155" stroke-width="2"/><text x="200" y="150" text-anchor="middle" fill="%2394a3b8" font-family="sans-serif" font-size="14" font-weight="bold">${encodeURIComponent(internalSelectedImage.filename)}</text></svg>`;
-								}}
-							/>
-						</div>
-					</div>
-				</div>
-			)}
-		</div>
-	);
-}
-
-const STATUS_OPTIONS = [
-	"Open",
-	"Incomplete",
-	"Under review",
-	"Verified",
-	"Approved",
-	"Offer Sent",
-	"PO Received",
-	"REGRET",
-	"Closed",
-];
-
-const getAttachmentUrl = (attId: string | number, isDownload = false) => {
-	const dlParam = isDownload ? "?dl=1" : "";
-	return `/api/rfq/attachments/${attId}${dlParam}`;
-};
+import { GmailEmailViewer } from "@/components/rfq/GmailEmailViewer";
+import { getRolePermissions } from "@/utils/rfqPermissions";
+import {
+	isImageFile,
+	formatFileSize,
+	STATUS_OPTIONS,
+	getAttachmentUrl,
+} from "@/utils/rfqHelpers";
 
 export default function EnquiryDetailPage() {
 	const params = useParams();
@@ -736,18 +50,19 @@ export default function EnquiryDetailPage() {
 	const queryClient = useQueryClient();
 	const { showToast, showConfirm } = useNotification();
 	const { user } = useAuth();
-	const userRole = (user?.role || "").toUpperCase();
-	const canReview = ["ADMIN", "CO", "GM", "PRODUCTION_HEAD"].includes(userRole);
-	const canEdit = [
-		"ADMIN",
-		"CO",
-		"GM",
-		"PRODUCTION_HEAD",
-		"SALES_MARKETING",
-	].includes(userRole);
-	const isTechnicalOnly = userRole === "TECHNICAL_PERSON";
+	const {
+		userRole,
+		canReview,
+		canEdit,
+		canChangeAssignment,
+		canChangeStatus,
+		isTechnicalOnly,
+	} = getRolePermissions(user?.role);
 	const isNew = params.id === "new";
 	const enquiryId = isNew ? null : (params.id as string);
+
+	const [isCustomerDetailsCollapsed, setIsCustomerDetailsCollapsed] =
+		useState(false);
 
 	const defaultNewForm: Partial<Enquiry> = {
 		type: "",
@@ -835,7 +150,7 @@ export default function EnquiryDetailPage() {
 
 			setCallNote("");
 			showToast(
-				"Follow-up Recorded 📞",
+				"Follow-up Recorded",
 				`${followupType} entry saved!`,
 				"success",
 			);
@@ -893,7 +208,7 @@ export default function EnquiryDetailPage() {
 					}
 					queryClient.invalidateQueries({ queryKey: ["rfq-tracker"] });
 					showToast(
-						"Email Sent ✉️",
+						"Email Sent",
 						`Post-offer follow-up email delivered to ${enquiry.email}`,
 						"success",
 					);
@@ -920,19 +235,28 @@ export default function EnquiryDetailPage() {
 	});
 
 	// Role-filtered directory lists for assignment dropdowns
+	// Technical Person dropdown: shows ALL users in database
 	const technicalDirectory = useMemo(() => {
-		return directory.filter((item) => {
-			if (!item.role) return true;
-			const r = item.role.toUpperCase();
-			return r !== "SALES_MARKETING";
-		});
+		return directory;
 	}, [directory]);
 
+	// Sales Responsibility dropdown: shows ONLY Sales and Admin personnel
 	const salesDirectory = useMemo(() => {
 		return directory.filter((item) => {
-			if (!item.role) return true;
-			const r = item.role.toUpperCase();
-			return r !== "TECHNICAL_PERSON";
+			const r = (item.role || "").toUpperCase().trim();
+			// Default legacy assignees without role are included, or match Sales/Admin roles
+			if (!r) return true;
+			return (
+				r === "SALES_MARKETING" ||
+				r === "SALES" ||
+				r === "ADMIN" ||
+				r === "CO" ||
+				r === "GM" ||
+				r.includes("SALES") ||
+				r.includes("MARKETING") ||
+				r.includes("ADMIN") ||
+				r.includes("SUPER")
+			);
 		});
 	}, [directory]);
 
@@ -950,8 +274,8 @@ export default function EnquiryDetailPage() {
 	const fetchedEnquiry =
 		enquiryResponse?.data ||
 		(enquiryResponse &&
-		typeof enquiryResponse === "object" &&
-		("_id" in enquiryResponse || "rfqId" in enquiryResponse)
+			typeof enquiryResponse === "object" &&
+			("_id" in enquiryResponse || "rfqId" in enquiryResponse)
 			? enquiryResponse
 			: null);
 	const historyLogs: ActivityLogItem[] = enquiryResponse?.history || [];
@@ -1106,7 +430,7 @@ export default function EnquiryDetailPage() {
 			if (res.targetUrl) {
 				window.open(res.targetUrl, "_blank", "noopener,noreferrer");
 				showToast(
-					"Automation Launched 🚀",
+					"Automation Launched",
 					"Opening Offer Generator dashboard…",
 					"success",
 				);
@@ -1304,7 +628,7 @@ export default function EnquiryDetailPage() {
 
 			if (kind === "offer" && cleanNo) {
 				showToast(
-					"Offer Mapped 🎯",
+					"Offer Mapped",
 					`Extracted Enquiry No: ${cleanNo.substring(0, 50)}`,
 					"success",
 				);
@@ -1450,28 +774,19 @@ export default function EnquiryDetailPage() {
 								<Folder className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />{" "}
 								Open Drive
 							</button>
-
-							<button
-								type="button"
-								onClick={handleLaunchAutomation}
-								className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/40 shadow-2xs transition-all flex items-center justify-center gap-1.5 whitespace-nowrap"
-								title="Push customer & RFQ parameters to Offer & Costing Automation engine">
-								<ExternalLink className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />{" "}
-								Send to Automation
-							</button>
-
-							<button
-								type="button"
-								onClick={handleSendClientEmail}
-								disabled={sendingClientEmail || !enquiry.email}
-								className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-cyan-50 dark:bg-cyan-950/50 hover:bg-cyan-100 dark:hover:bg-cyan-900/60 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-500/40 shadow-2xs transition-all flex items-center justify-center gap-1.5 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-								title="Send post-offer follow-up email directly to client email">
-								<Send className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />{" "}
-								{sendingClientEmail ? "Sending..." : "Email Client Follow-up"}
-							</button>
 						</>
 					)}
-					{canEdit && enquiry.status !== "Incomplete" && (
+					{!isNew && (enquiry.status || "").toLowerCase() === "open" && (
+						<button
+							type="button"
+							onClick={handleLaunchAutomation}
+							className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/40 shadow-2xs transition-all flex items-center justify-center gap-1.5 whitespace-nowrap"
+							title="Push customer & RFQ parameters to Offer & Costing Automation engine">
+							<ExternalLink className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />{" "}
+							Send to Automation
+						</button>
+					)}
+					{canEdit && (enquiry.status || "").toLowerCase() === "open" && (
 						<button
 							type="button"
 							onClick={() => {
@@ -1508,7 +823,7 @@ export default function EnquiryDetailPage() {
 							type="button"
 							onClick={handleSave}
 							disabled={saving}
-							className="px-4.5 py-2 rounded-md text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs transition-all flex items-center justify-center gap-1.5 whitespace-nowrap">
+							className="px-5 py-2.5 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 !text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer">
 							{saving ? "Saving..." : "Save Changes"}
 						</button>
 					) : (
@@ -1522,40 +837,40 @@ export default function EnquiryDetailPage() {
 			{/* ADMIN REVIEW FEEDBACK BANNER (IF REJECTED / CHANGES REQUESTED) */}
 			{(enquiry.followupRemarks?.includes("[Review Feedback]") ||
 				enquiry.remarks?.includes("[Review Feedback]")) && (
-				<div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 shadow-lg flex items-start justify-between gap-3">
-					<div className="flex items-start gap-3">
-						<AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-						<div className="space-y-1">
-							<h4 className="text-xs font-bold text-rose-400 uppercase tracking-wider">
-								⚠️ Admin Review Feedback — Changes Requested
-							</h4>
-							<p className="text-xs text-rose-200 leading-relaxed font-semibold">
-								{enquiry.remarks?.includes("[Review Feedback]")
-									? enquiry.remarks.replace("[Review Feedback]:", "").trim()
-									: enquiry.followupRemarks
+					<div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 shadow-lg flex items-start justify-between gap-3">
+						<div className="flex items-start gap-3">
+							<AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+							<div className="space-y-1">
+								<h4 className="text-xs font-bold text-rose-400 uppercase tracking-wider">
+									⚠️ Admin Review Feedback — Changes Requested
+								</h4>
+								<p className="text-xs text-rose-200 leading-relaxed font-semibold">
+									{enquiry.remarks?.includes("[Review Feedback]")
+										? enquiry.remarks.replace("[Review Feedback]:", "").trim()
+										: enquiry.followupRemarks
 											?.substring(
 												enquiry.followupRemarks.indexOf("[Review Feedback]"),
 											)
 											.replace("[Review Feedback]:", "")
 											.trim()}
-							</p>
-							<p className="text-[11px] text-rose-400/80 mt-0.5">
-								This RFQ has been sent back to <strong>Open</strong> status.
-								Please update the details, costing, or questionnaire and
-								resubmit for review once ready.
-							</p>
+								</p>
+								<p className="text-[11px] text-rose-400/80 mt-0.5">
+									This RFQ has been sent back to <strong>Open</strong> status.
+									Please update the details, costing, or questionnaire and
+									resubmit for review once ready.
+								</p>
+							</div>
 						</div>
+						{canEdit && (
+							<button
+								type="button"
+								onClick={handleResolveFeedback}
+								className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-all shrink-0 flex items-center gap-1.5">
+								<CheckCircle2 className="w-3.5 h-3.5" /> Mark Resolved ✓
+							</button>
+						)}
 					</div>
-					{canEdit && (
-						<button
-							type="button"
-							onClick={handleResolveFeedback}
-							className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-all shrink-0 flex items-center gap-1.5">
-							<CheckCircle2 className="w-3.5 h-3.5" /> Mark Resolved ✓
-						</button>
-					)}
-				</div>
-			)}
+				)}
 
 			{/* MAIN LAYOUT: 2 CONTAINERS */}
 			<div className="space-y-4 w-full">
@@ -1827,504 +1142,523 @@ export default function EnquiryDetailPage() {
 					</div>
 				)}
 
-				{/* CONTAINER 2: MAIN CUSTOMER & ENQUIRY DETAILS FORM (FULL WIDTH) */}
+				{/* CONTAINER 2: MAIN CUSTOMER & ENQUIRY DETAILS FORM (SIDE-BY-SIDE 2-COLUMN LAYOUT) */}
 				<form
 					onSubmit={handleSave}
-					className="glass-card p-6 rounded-2xl border border-slate-800 space-y-6 w-full shadow-2xl">
-					{/* Customer Info */}
-					<div>
-						<div className="flex items-center justify-between mb-3">
-							<h3 className="text-xs font-bold text-thermal-400 uppercase tracking-wider">
-								Customer Information
-							</h3>
-							{isTechnicalOnly && (
-								<span className="text-[11px] font-semibold text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/30">
-									🔒 Read-Only Fields (Technical Role)
-								</span>
+					className="glass-card p-5 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-5 w-full shadow-2xl">
+					{/* SIDE-BY-SIDE GRID WRAPPER */}
+					<div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+						{/* LEFT COLUMN (5 cols): CUSTOMER DETAILS & ASSIGNMENT (COLLAPSIBLE) */}
+						<div className="lg:col-span-5 space-y-4">
+							<div className="glass-card p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/60 space-y-4">
+								<div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5">
+									<div className="flex items-center gap-2">
+										<h3 className="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider">
+											Customer & Assignment Details
+										</h3>
+									</div>
+									<button
+										type="button"
+										onClick={() =>
+											setIsCustomerDetailsCollapsed(!isCustomerDetailsCollapsed)
+										}
+										className="px-2.5 py-1 rounded-lg bg-slate-200/80 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer">
+										{isCustomerDetailsCollapsed ? (
+											<>
+												<ChevronDown className="w-3.5 h-3.5" /> Expand
+											</>
+										) : (
+											<>
+												<ChevronUp className="w-3.5 h-3.5" /> Minimize
+											</>
+										)}
+									</button>
+								</div>
+
+								{isCustomerDetailsCollapsed ? (
+									/* MINIMIZED SUMMARY VIEW */
+									<div className="p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
+										<div className="flex items-center justify-between">
+											<span className="font-bold text-slate-900 dark:text-white">
+												{enquiry.companyName || "No Company Name"}
+											</span>
+											<span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 font-bold border border-cyan-500/30">
+												{enquiry.status || "Open"}
+											</span>
+										</div>
+										<div className="text-slate-500 dark:text-slate-400 text-[11px] space-y-0.5">
+											{enquiry.contactPerson && (
+												<p>
+													Contact:{" "}
+													<strong className="text-slate-700 dark:text-slate-300">
+														{enquiry.contactPerson}
+													</strong>
+												</p>
+											)}
+											{enquiry.mobile && <p>Mobile: {enquiry.mobile}</p>}
+											{enquiry.email && <p>Email: {enquiry.email}</p>}
+											<p className="pt-1 text-[10px] font-mono text-cyan-600 dark:text-cyan-400">
+												Tech: {enquiry.technical || enquiry.assignedTo || "Unassigned"} | Sales: {enquiry.salesResponsibility || "Unassigned"}
+											</p>
+										</div>
+										<button
+											type="button"
+											onClick={() => setIsCustomerDetailsCollapsed(false)}
+											className="w-full py-1 mt-1 rounded bg-slate-100 dark:bg-slate-800 text-[11px] font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-center cursor-pointer">
+											Click to Edit Full Customer Info
+										</button>
+									</div>
+								) : (
+									/* EXPANDED FULL FORM */
+									<div className="space-y-4">
+										{/* Customer Info */}
+										<div className="space-y-3">
+											<div>
+												<label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
+													Company Name *
+												</label>
+												<input
+													type="text"
+													required
+													disabled={!canEdit}
+													value={enquiry.companyName || ""}
+													onChange={(e) =>
+														setEnquiry({ ...enquiry, companyName: e.target.value })
+													}
+													className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+												/>
+											</div>
+											<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+												<div>
+													<label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
+														Contact Person
+													</label>
+													<input
+														type="text"
+														disabled={!canEdit}
+														value={enquiry.contactPerson || ""}
+														onChange={(e) =>
+															setEnquiry({ ...enquiry, contactPerson: e.target.value })
+														}
+														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+													/>
+												</div>
+												<div>
+													<label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
+														Mobile
+													</label>
+													<input
+														type="text"
+														disabled={!canEdit}
+														value={enquiry.mobile || ""}
+														onChange={(e) =>
+															setEnquiry({ ...enquiry, mobile: e.target.value })
+														}
+														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+													/>
+												</div>
+											</div>
+											<div>
+												<label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
+													Email
+												</label>
+												<input
+													type="email"
+													disabled={!canEdit}
+													value={enquiry.email || ""}
+													onChange={(e) =>
+														setEnquiry({ ...enquiry, email: e.target.value })
+													}
+													className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+												/>
+											</div>
+										</div>
+
+										{/* Item Description & Assignment */}
+										<div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-3">
+											<div>
+												<label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
+													Item Description *
+												</label>
+												<textarea
+													rows={2}
+													required
+													disabled={!canEdit}
+													value={enquiry.itemDescription || ""}
+													onChange={(e) =>
+														setEnquiry({ ...enquiry, itemDescription: e.target.value })
+													}
+													className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+												/>
+											</div>
+
+											<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+												<div>
+													<label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
+														Technical Assignee *
+													</label>
+													<select
+														disabled={!canChangeAssignment}
+														value={enquiry.technical || enquiry.assignedTo || ""}
+														onChange={(e) =>
+															setEnquiry({
+																...enquiry,
+																technical: e.target.value,
+																assignedTo: e.target.value,
+															})
+														}
+														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canChangeAssignment ? "opacity-70 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}>
+														<option value="">Select Technical Assignee...</option>
+														{technicalDirectory.map((item) => (
+															<option key={item.name} value={item.name}>
+																{item.name} {item.email ? `(${item.email})` : ""}
+															</option>
+														))}
+														{enquiry.technical &&
+															!technicalDirectory.some(
+																(d) => d.name === enquiry.technical,
+															) && (
+																<option value={enquiry.technical}>
+																	{enquiry.technical}
+																</option>
+															)}
+													</select>
+												</div>
+
+												<div>
+													<label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
+														Sales Responsibility
+													</label>
+													<select
+														disabled={!canChangeAssignment}
+														value={enquiry.salesResponsibility || ""}
+														onChange={(e) =>
+															setEnquiry({
+																...enquiry,
+																salesResponsibility: e.target.value,
+															})
+														}
+														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canChangeAssignment ? "opacity-70 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}>
+														<option value="">Unassigned</option>
+														{salesDirectory.map((item) => (
+															<option key={item.name} value={item.name}>
+																{item.name} {item.email ? `(${item.email})` : ""}
+															</option>
+														))}
+														{enquiry.salesResponsibility &&
+															!salesDirectory.some(
+																(d) => d.name === enquiry.salesResponsibility,
+															) && (
+																<option value={enquiry.salesResponsibility}>
+																	{enquiry.salesResponsibility}
+																</option>
+															)}
+													</select>
+												</div>
+											</div>
+
+											<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+												<div>
+													<label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
+														TAT (Days)
+													</label>
+													<input
+														type="number"
+														disabled={!canEdit}
+														value={enquiry.tat || "30"}
+														onChange={(e) =>
+															setEnquiry({ ...enquiry, tat: e.target.value })
+														}
+														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+													/>
+												</div>
+												<div>
+													<label className="block text-[11px] font-semibold text-indigo-400 mb-1">
+														Offer No
+													</label>
+													<input
+														type="text"
+														disabled={!canEdit}
+														placeholder="e.g. ENC/OFR/044"
+														value={enquiry.offerNo || ""}
+														onChange={(e) =>
+															setEnquiry({ ...enquiry, offerNo: e.target.value })
+														}
+														className={`w-full bg-white dark:bg-slate-950 border border-indigo-900/80 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-indigo-500 focus:outline-none font-mono ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+													/>
+												</div>
+												<div>
+													<label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
+														Status
+													</label>
+													<select
+														disabled={!canChangeStatus}
+														value={enquiry.status || "Open"}
+														onChange={(e) =>
+															setEnquiry({ ...enquiry, status: e.target.value })
+														}
+														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canChangeStatus ? "opacity-70 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}>
+														{STATUS_OPTIONS.map((opt) => (
+															<option key={opt} value={opt}>
+																{opt}
+															</option>
+														))}
+													</select>
+												</div>
+											</div>
+
+											<div>
+												<label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
+													Remarks
+												</label>
+												<textarea
+													rows={2}
+													disabled={!canEdit}
+													value={enquiry.remarks || ""}
+													onChange={(e) =>
+														setEnquiry({ ...enquiry, remarks: e.target.value })
+													}
+													className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+												/>
+											</div>
+										</div>
+									</div>
+								)}
+							</div>
+
+							{/* Incomplete Data Banner (if Incomplete status or pendingRemarks exist) */}
+							{(enquiry.status === "Incomplete" ||
+								Boolean(enquiry.pendingRemarks?.trim())) && (
+								<div className="p-3.5 rounded-xl bg-amber-500/5 dark:bg-amber-500/10 border-l-4 border-l-amber-500 border border-amber-200 dark:border-amber-900/40 space-y-2 shadow-xs">
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-1.5">
+											<AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+											<h3 className="text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider">
+												Pending Requirements
+											</h3>
+										</div>
+									</div>
+									<textarea
+										rows={2}
+										disabled={!canEdit}
+										placeholder="e.g. Pending client drawing input..."
+										value={enquiry.pendingRemarks || ""}
+										onChange={(e) =>
+											setEnquiry({ ...enquiry, pendingRemarks: e.target.value })
+										}
+										className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+									/>
+								</div>
 							)}
 						</div>
-						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-							<div>
-								<label className="block text-[11px] font-semibold text-slate-400 mb-1">
-									Company Name *
-								</label>
-								<input
-									type="text"
-									required
-									disabled={!canEdit}
-									value={enquiry.companyName || ""}
-									onChange={(e) =>
-										setEnquiry({ ...enquiry, companyName: e.target.value })
-									}
-									className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-thermal-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
-								/>
-							</div>
-							<div>
-								<label className="block text-[11px] font-semibold text-slate-400 mb-1">
-									Contact Person
-								</label>
-								<input
-									type="text"
-									disabled={!canEdit}
-									value={enquiry.contactPerson || ""}
-									onChange={(e) =>
-										setEnquiry({ ...enquiry, contactPerson: e.target.value })
-									}
-									className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-thermal-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
-								/>
-							</div>
-							<div>
-								<label className="block text-[11px] font-semibold text-slate-400 mb-1">
-									Mobile
-								</label>
-								<input
-									type="text"
-									disabled={!canEdit}
-									value={enquiry.mobile || ""}
-									onChange={(e) =>
-										setEnquiry({ ...enquiry, mobile: e.target.value })
-									}
-									className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-thermal-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
-								/>
-							</div>
-							<div>
-								<label className="block text-[11px] font-semibold text-slate-400 mb-1">
-									Email
-								</label>
-								<input
-									type="email"
-									disabled={!canEdit}
-									value={enquiry.email || ""}
-									onChange={(e) =>
-										setEnquiry({ ...enquiry, email: e.target.value })
-									}
-									className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-thermal-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
-								/>
-							</div>
-						</div>
-					</div>
 
-					{/* Enquiry & Assignment */}
-					<div>
-						<h3 className="text-xs font-bold text-thermal-400 uppercase tracking-wider mb-3">
-							Enquiry & Assignment
-						</h3>
-						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-							<div className="sm:col-span-2 lg:col-span-4">
-								<label className="block text-[11px] font-semibold text-slate-400 mb-1">
-									Item Description *
-								</label>
-								<textarea
-									rows={3}
-									required
-									disabled={!canEdit}
-									value={enquiry.itemDescription || ""}
-									onChange={(e) =>
-										setEnquiry({ ...enquiry, itemDescription: e.target.value })
-									}
-									className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-thermal-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
-								/>
-							</div>
-							<div>
-								<label className="block text-[11px] font-semibold text-slate-400 mb-1">
-									Technical Person (Assignee) *
-								</label>
-								<select
-									disabled={!canEdit}
-									value={enquiry.technical || enquiry.assignedTo || ""}
-									onChange={(e) =>
-										setEnquiry({
-											...enquiry,
-											technical: e.target.value,
-											assignedTo: e.target.value,
-										})
-									}
-									className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : "cursor-pointer"}`}>
-									<option value="">Select Technical Assignee...</option>
-									{technicalDirectory.map((item) => (
-										<option key={item.name} value={item.name}>
-											{item.name} {item.email ? `(${item.email})` : ""}
-										</option>
-									))}
-									{enquiry.technical &&
-										!technicalDirectory.some(
-											(d) => d.name === enquiry.technical,
-										) && (
-											<option value={enquiry.technical}>
-												{enquiry.technical}
-											</option>
-										)}
-								</select>
-							</div>
-							<div>
-								<label className="block text-[11px] font-semibold text-slate-400 mb-1">
-									TAT (Days)
-								</label>
-								<input
-									type="number"
-									disabled={!canEdit}
-									value={enquiry.tat || "30"}
-									onChange={(e) =>
-										setEnquiry({ ...enquiry, tat: e.target.value })
-									}
-									className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
-								/>
-							</div>
-							<div>
-								<label className="block text-[11px] font-semibold text-slate-400 mb-1">
-									Sales Responsibility
-								</label>
-								<select
-									disabled={!canEdit}
-									value={enquiry.salesResponsibility || ""}
-									onChange={(e) =>
-										setEnquiry({
-											...enquiry,
-											salesResponsibility: e.target.value,
-										})
-									}
-									className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : "cursor-pointer"}`}>
-									<option value="">Unassigned</option>
-									{salesDirectory.map((item) => (
-										<option key={item.name} value={item.name}>
-											{item.name} {item.email ? `(${item.email})` : ""}
-										</option>
-									))}
-									{enquiry.salesResponsibility &&
-										!salesDirectory.some(
-											(d) => d.name === enquiry.salesResponsibility,
-										) && (
-											<option value={enquiry.salesResponsibility}>
-												{enquiry.salesResponsibility}
-											</option>
-										)}
-								</select>
-							</div>
-						</div>
-					</div>
-
-					{/* Offer & Status */}
-					<div>
-						<h3 className="text-xs font-bold text-thermal-400 uppercase tracking-wider mb-3">
-							Offer Mapping & Status
-						</h3>
-						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-							<div>
-								<label className="block text-[11px] font-semibold text-indigo-400 mb-1">
-									Offer Number
-								</label>
-								<input
-									type="text"
-									disabled={!canEdit}
-									placeholder="e.g. ENC/OFR/2026/044"
-									value={enquiry.offerNo || ""}
-									onChange={(e) =>
-										setEnquiry({ ...enquiry, offerNo: e.target.value })
-									}
-									className={`w-full bg-slate-950 border border-indigo-900/80 rounded-xl px-3.5 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none font-mono ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
-								/>
-							</div>
-							<div>
-								<label className="block text-[11px] font-semibold text-indigo-400 mb-1">
-									Offer Date
-								</label>
-								<input
-									type="date"
-									disabled={!canEdit}
-									value={enquiry.offerDate || ""}
-									onChange={(e) =>
-										setEnquiry({ ...enquiry, offerDate: e.target.value })
-									}
-									className={`w-full bg-slate-950 border border-indigo-900/80 rounded-xl px-3.5 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
-								/>
-							</div>
-							<div>
-								<label className="block text-[11px] font-semibold text-slate-400 mb-1">
-									Status
-								</label>
-								<select
-									disabled={!canEdit}
-									value={enquiry.status || "Open"}
-									onChange={(e) =>
-										setEnquiry({ ...enquiry, status: e.target.value })
-									}
-									className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-thermal-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : "cursor-pointer"}`}>
-									{STATUS_OPTIONS.map((opt) => (
-										<option key={opt} value={opt}>
-											{opt}
-										</option>
-									))}
-								</select>
-							</div>
-							<div className="sm:col-span-2 lg:col-span-3">
-								<label className="block text-[11px] font-semibold text-slate-400 mb-1">
-									Remarks
-								</label>
-								<textarea
-									rows={2}
-									disabled={!canEdit}
-									value={enquiry.remarks || ""}
-									onChange={(e) =>
-										setEnquiry({ ...enquiry, remarks: e.target.value })
-									}
-									className={`w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-thermal-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
-								/>
-							</div>
-						</div>
-					</div>
-
-					{/* Incomplete Data & Pending Client Information (Show ONLY when status is Incomplete or pendingRemarks exist) */}
-					{(enquiry.status === "Incomplete" ||
-						Boolean(enquiry.pendingRemarks?.trim())) && (
-						<div className="p-4 rounded-xl bg-amber-500/5 dark:bg-amber-500/10 border-l-4 border-l-amber-500 border border-amber-200 dark:border-amber-900/40 space-y-3 shadow-xs animate-in fade-in duration-200">
-							<div className="flex items-center justify-between">
-								<div className="flex items-center gap-2">
-									<AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-									<h3 className="text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider">
-										Incomplete Data & Pending Requirements
-									</h3>
-								</div>
-								{enquiry.status === "Incomplete" && (
-									<span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 font-bold border border-amber-300 dark:border-amber-800">
-										STATUS: INCOMPLETE
-									</span>
-								)}
-							</div>
-							<div>
-								<label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
-									Missing Information / Client Pending Remarks
-								</label>
-								<textarea
-									rows={2}
-									disabled={!canEdit}
-									placeholder="e.g. Pending client specification drawing, gas flow rate & inlet temperature input."
-									value={enquiry.pendingRemarks || ""}
-									onChange={(e) =>
-										setEnquiry({ ...enquiry, pendingRemarks: e.target.value })
-									}
-									className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3.5 py-2.5 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none font-sans font-medium shadow-xs ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
-								/>
-								<p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
-									Specify technical details or drawings required from client to
-									proceed with estimation & offer generation.
-								</p>
-							</div>
-						</div>
-					)}
-
-					{/* Client Call & Interaction Logger */}
-					<div className="p-5 rounded-xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4 shadow-xs">
-						<div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-							<div className="flex items-center gap-2">
-								<div className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
-									<Phone className="w-4 h-4" />
-								</div>
-								<div>
-									<h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
-										Client Call & Follow-up History Log
-									</h3>
-									<p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-										Record discussions, follow-ups, and track who wrote each
-										remark entry.
-									</p>
-								</div>
-							</div>
-							<div className="flex items-center gap-2">
-								{enquiry.lastCallDate && (
-									<span className="text-[11px] px-3 py-1 rounded-lg bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-semibold border border-slate-300/60 dark:border-slate-700">
-										Last Call: {enquiry.lastCallDate}
-									</span>
-								)}
-								{!isNew && (
-									<button
-										type="button"
-										onClick={handleSendClientEmail}
-										disabled={sendingClientEmail || !enquiry.email}
-										className="px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-800 text-white shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
-										<Send className="w-3.5 h-3.5" />
-										{sendingClientEmail ? "Sending..." : "Send Client Email"}
-									</button>
-								)}
-							</div>
-						</div>
-
-						<div className="space-y-3">
-							<div className="flex flex-wrap items-center gap-2">
-								<span className="text-xs font-bold text-slate-700 dark:text-slate-300 mr-1">
-									Log Type:
-								</span>
-								{[
-									{ key: "Call", label: "📞 Phone Call" },
-									{ key: "Followup", label: "🔄 Follow-up" },
-									{ key: "Email", label: "✉️ Email" },
-									{ key: "Meeting", label: "🤝 Meeting" },
-									{ key: "Remark", label: "📝 Remark" },
-								].map((t) => (
-									<button
-										key={t.key}
-										type="button"
-										onClick={() => setFollowupType(t.key)}
-										className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${
-											followupType === t.key
-												? "bg-cyan-600 text-white border-cyan-500 font-bold shadow-xs"
-												: "bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-cyan-400"
-										}`}>
-										{t.label}
-									</button>
-								))}
-							</div>
-
-							<div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-								<div>
-									<label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-										Date
-									</label>
-									<input
-										type="date"
-										value={callDate}
-										onChange={(e) => setCallDate(e.target.value)}
-										className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-medium focus:border-cyan-500 focus:outline-none shadow-xs"
-									/>
+						{/* RIGHT COLUMN (7 cols): CLIENT CALL & FOLLOW-UP LOGGER & TIMELINE */}
+						<div className="lg:col-span-7 space-y-4">
+							<div className="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4 shadow-xs">
+								<div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+									<div className="flex items-center gap-2">
+										<div className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
+											<Phone className="w-4 h-4" />
+										</div>
+										<div>
+											<h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+												Client Call & Follow-up History Log
+											</h3>
+											<p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+												Record discussions & follow-ups side-by-side with client info
+											</p>
+										</div>
+									</div>
+									{enquiry.lastCallDate && (
+										<span className="text-[11px] px-3 py-1 rounded-lg bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-semibold border border-slate-300/60 dark:border-slate-700">
+											Last Call: {enquiry.lastCallDate}
+										</span>
+									)}
 								</div>
 
-								<div>
-									<label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-										Next Follow-up Date
-									</label>
-									<input
-										type="date"
-										value={nextFollowup || enquiry.nextActionDate || ""}
-										onChange={(e) => {
-											setNextFollowup(e.target.value);
-											setEnquiry({
-												...enquiry,
-												nextActionDate: e.target.value,
-											});
-										}}
-										className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-medium focus:border-cyan-500 focus:outline-none shadow-xs"
-									/>
+								<div className="space-y-3">
+									<div className="flex flex-wrap items-center gap-2">
+										<span className="text-xs font-bold text-slate-700 dark:text-slate-300 mr-1">
+											Log Type:
+										</span>
+										{[
+											{ key: "Call", label: "Phone Call" },
+											{ key: "Followup", label: "Follow-up" },
+											{ key: "Email", label: "Email" },
+											{ key: "Meeting", label: "Meeting" },
+											{ key: "Remark", label: "Remark" },
+										].map((t) => (
+											<button
+												key={t.key}
+												type="button"
+												onClick={() => setFollowupType(t.key)}
+												className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+													followupType === t.key
+														? "bg-cyan-600 text-white border-cyan-500 font-bold shadow-xs"
+														: "bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-cyan-400"
+												}`}>
+												{t.label}
+											</button>
+										))}
+									</div>
+
+									<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+										<div>
+											<label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+												Log Date
+											</label>
+											<input
+												type="date"
+												value={callDate}
+												onChange={(e) => setCallDate(e.target.value)}
+												className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-medium focus:border-cyan-500 focus:outline-none shadow-xs"
+											/>
+										</div>
+
+										<div>
+											<label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+												Next Follow-up Date
+											</label>
+											<input
+												type="date"
+												value={nextFollowup || enquiry.nextActionDate || ""}
+												onChange={(e) => {
+													setNextFollowup(e.target.value);
+													setEnquiry({
+														...enquiry,
+														nextActionDate: e.target.value,
+													});
+												}}
+												className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-medium focus:border-cyan-500 focus:outline-none shadow-xs"
+											/>
+										</div>
+
+										<div className="flex items-end">
+											<button
+												type="button"
+												disabled={loggingCall}
+												onClick={handleLogCall}
+												className="w-full py-2 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+												<Plus className="w-3.5 h-3.5" />{" "}
+												{loggingCall ? "Saving..." : `Add ${followupType}`}
+											</button>
+										</div>
+									</div>
+
+									<div>
+										<label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+											Follow-up Notes & Discussion Details *
+										</label>
+										<textarea
+											rows={2}
+											placeholder={`Enter ${followupType.toLowerCase()} discussion details, customer commitments...`}
+											value={callNote}
+											onChange={(e) => setCallNote(e.target.value)}
+											className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3.5 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-cyan-500 focus:outline-none font-medium shadow-xs"
+										/>
+									</div>
 								</div>
 
-								<div className="flex items-end">
-									<button
-										type="button"
-										disabled={loggingCall}
-										onClick={handleLogCall}
-										className="w-full py-2 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs transition-all flex items-center justify-center gap-1.5">
-										<Plus className="w-3.5 h-3.5" />{" "}
-										{loggingCall ? "Saving..." : `Add ${followupType} Entry`}
-									</button>
-								</div>
-							</div>
+								{/* Timeline History List */}
+								{followupsList.length > 0 && (
+									<div className="space-y-2 pt-3 border-t border-slate-200 dark:border-slate-800/80">
+										<div className="flex items-center justify-between">
+											<label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+												Timeline History ({followupsList.length})
+											</label>
+											<span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+												Newest first
+											</span>
+										</div>
+										<div className="bg-slate-100/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl p-3 max-h-[380px] overflow-y-auto space-y-2.5 custom-scrollbar">
+											{followupsList.map((entry: any, idx: number) => {
+												const typeLabel = entry.type || "Remark";
+												const isCall = typeLabel === "Call";
+												const isEmail = typeLabel === "Email";
+												const isMeeting = typeLabel === "Meeting";
 
-							<div>
-								<label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-									Follow-up / Call Notes & Discussion Details *
-								</label>
-								<textarea
-									rows={2}
-									placeholder={`Enter ${followupType.toLowerCase()} discussion details, customer commitments, technical requirements...`}
-									value={callNote}
-									onChange={(e) => setCallNote(e.target.value)}
-									className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3.5 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-cyan-500 focus:outline-none font-medium shadow-xs"
-								/>
-							</div>
-						</div>
+												const formattedDate = entry.createdAt
+													? isNaN(new Date(entry.createdAt).getTime())
+														? entry.createdAt
+														: new Date(entry.createdAt).toLocaleString(
+																"en-US",
+																{
+																	month: "short",
+																	day: "numeric",
+																	year: "numeric",
+																	hour: "2-digit",
+																	minute: "2-digit",
+																},
+														  )
+													: "N/A";
 
-						{/* Timeline History List */}
-						{followupsList.length > 0 && (
-							<div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800/80">
-								<div className="flex items-center justify-between">
-									<label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-										Follow-up & Remarks Timeline ({followupsList.length})
-									</label>
-									<span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-										Newest first
-									</span>
-								</div>
-								<div className="bg-slate-100/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl p-3 max-h-64 overflow-y-auto space-y-2.5 custom-scrollbar">
-									{followupsList.map((entry: any, idx: number) => {
-										const typeLabel = entry.type || "Remark";
-										const isCall = typeLabel === "Call";
-										const isEmail = typeLabel === "Email";
-										const isMeeting = typeLabel === "Meeting";
-
-										const formattedDate = entry.createdAt
-											? isNaN(new Date(entry.createdAt).getTime())
-												? entry.createdAt
-												: new Date(entry.createdAt).toLocaleString("en-US", {
-														month: "short",
-														day: "numeric",
-														year: "numeric",
-														hour: "2-digit",
-														minute: "2-digit",
-													})
-											: "N/A";
-
-										return (
-											<div
-												key={entry._id || entry.id || idx}
-												className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800/90 shadow-2xs space-y-1.5">
-												<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/60 pb-1.5">
-													<div className="flex items-center gap-2">
-														<span
-															className={`px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${
-																isCall
-																	? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
-																	: isEmail
-																		? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30"
-																		: isMeeting
+												return (
+													<div
+														key={entry._id || entry.id || idx}
+														className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800/90 shadow-2xs space-y-1.5">
+														<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/60 pb-1.5">
+															<div className="flex items-center gap-2">
+																<span
+																	className={`px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${
+																		isCall
+																			? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+																			: isEmail
+																			? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30"
+																			: isMeeting
 																			? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30"
 																			: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
-															}`}>
-															{typeLabel}
-														</span>
-														<div className="flex items-center gap-1 text-xs font-bold text-slate-900 dark:text-slate-100">
-															<UserCheck className="w-3.5 h-3.5 text-cyan-500" />
-															<span>{entry.author || "User"}</span>
+																	}`}>
+																	{typeLabel}
+																</span>
+																<div className="flex items-center gap-1 text-xs font-bold text-slate-900 dark:text-slate-100">
+																	<UserCheck className="w-3.5 h-3.5 text-cyan-500" />
+																	<span>{entry.author || "User"}</span>
+																</div>
+															</div>
+															<div className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+																{formattedDate}
+															</div>
 														</div>
-													</div>
-													<div className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
-														{formattedDate}
-													</div>
-												</div>
 
-												<div className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans font-medium whitespace-pre-wrap pt-0.5">
-													{entry.note}
-												</div>
+														<div className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans font-medium whitespace-pre-wrap pt-0.5">
+															{entry.note}
+														</div>
 
-												{entry.nextActionDate && (
-													<div className="text-[10px] font-semibold text-cyan-600 dark:text-cyan-400 flex items-center gap-1 pt-1">
-														<Clock className="w-3 h-3" /> Next Follow-up
-														Scheduled: {entry.nextActionDate}
+														{entry.nextActionDate && (
+															<div className="text-[10px] font-semibold text-cyan-600 dark:text-cyan-400 flex items-center gap-1 pt-1">
+																<Clock className="w-3 h-3" /> Next Follow-up
+																Scheduled: {entry.nextActionDate}
+															</div>
+														)}
 													</div>
-												)}
-											</div>
-										);
-									})}
-								</div>
+												);
+											})}
+										</div>
+									</div>
+								)}
 							</div>
-						)}
+						</div>
 					</div>
 
-					<div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+					{/* FORM ACTION FOOTER */}
+					<div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
 						<button
 							type="button"
 							onClick={() => router.push("/rfq")}
-							className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors">
+							className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
 							Back to Tracker
 						</button>
 						{canEdit ? (
 							<button
 								type="submit"
 								disabled={saving}
-								className="px-5 py-2 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md transition-all flex items-center gap-1.5">
+								className="px-5 py-2.5 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer">
 								{saving && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
 								{saving ? "Saving..." : "Save Changes"}
 							</button>
 						) : (
-							<span className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
-								🔒 Read-Only (Document Upload Only)
+							<span className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30 flex items-center gap-1.5">
+								🔒 Read-Only
 							</span>
 						)}
 					</div>
@@ -2375,6 +1709,147 @@ export default function EnquiryDetailPage() {
 									parsed.uploadedBy ||
 									"Team Member";
 
+								const renderLogDetails = () => {
+									if (parsed.oldStatus && parsed.newStatus) {
+										return (
+											<span>
+												Status changed from{" "}
+												<strong className="text-amber-400 font-semibold">
+													{parsed.oldStatus}
+												</strong>{" "}
+												to{" "}
+												<strong className="text-emerald-400 font-semibold">
+													{parsed.newStatus}
+												</strong>
+											</span>
+										);
+									}
+									if (parsed.filename) {
+										return (
+											<span>
+												Uploaded file:{" "}
+												<strong className="text-cyan-400 font-semibold">
+													{parsed.filename}
+												</strong>{" "}
+												({parsed.kind || "Attachment"})
+											</span>
+										);
+									}
+									if (parsed.remarks) {
+										return (
+											<span>
+												Review feedback:{" "}
+												<strong className="text-rose-300 italic">
+													&quot;{parsed.remarks}&quot;
+												</strong>
+											</span>
+										);
+									}
+									if (parsed.updates && typeof parsed.updates === "object") {
+										const u = parsed.updates;
+										const changes: string[] = [];
+
+										if (u.status) changes.push(`Status: ${u.status}`);
+										if (u.technical || u.assignedTo)
+											changes.push(
+												`Assignee: ${u.technical || u.assignedTo}`,
+											);
+										if (u.salesResponsibility)
+											changes.push(`Sales: ${u.salesResponsibility}`);
+										if (u.offerNo) changes.push(`Offer No: ${u.offerNo}`);
+										if (u.offerDate) changes.push(`Offer Date: ${u.offerDate}`);
+										if (u.nextActionDate)
+											changes.push(`Next Follow-up: ${u.nextActionDate}`);
+										if (u.lastCallDate)
+											changes.push(`Call Date: ${u.lastCallDate}`);
+										if (u.pendingRemarks)
+											changes.push(`Pending Req: ${u.pendingRemarks}`);
+										if (u.companyName)
+											changes.push(`Company: ${u.companyName}`);
+										if (u.contactPerson)
+											changes.push(`Contact: ${u.contactPerson}`);
+
+										if (changes.length > 0) {
+											return (
+												<span className="text-slate-300">
+													Updated:{" "}
+													<strong className="text-cyan-300 font-medium">
+														{changes.join(" • ")}
+													</strong>
+												</span>
+											);
+										}
+
+										const keys = Object.keys(u).filter(
+											(k) =>
+												![
+													"id",
+													"_id",
+													"rfqId",
+													"updatedAt",
+													"createdAt",
+												].includes(k),
+										);
+										if (keys.length > 0) {
+											const formattedKeys = keys
+												.map((k) =>
+													k.replace(/([A-Z])/g, " $1").toLowerCase(),
+												)
+												.join(", ");
+											return (
+												<span className="text-slate-300">
+													Updated fields:{" "}
+													<strong className="text-slate-200">
+														{formattedKeys}
+													</strong>
+												</span>
+											);
+										}
+									}
+									return (
+										<span className="text-slate-400 font-normal">
+											Updated enquiry details
+										</span>
+									);
+								};
+
+								const getActionBadge = () => {
+									const a = (log.action || "").toUpperCase();
+									if (a.includes("STATUS")) {
+										return (
+											<span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+												Status Changed
+											</span>
+										);
+									}
+									if (a.includes("UPLOAD") || a.includes("ATTACHMENT")) {
+										return (
+											<span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20">
+												File Uploaded
+											</span>
+										);
+									}
+									if (a.includes("REVIEW")) {
+										return (
+											<span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
+												Review Action
+											</span>
+										);
+									}
+									if (a.includes("FOLLOWUP") || a.includes("CALL")) {
+										return (
+											<span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+												Follow-up Logged
+											</span>
+										);
+									}
+									return (
+										<span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+											RFQ Updated
+										</span>
+									);
+								};
+
 								return (
 									<div
 										key={log.id}
@@ -2388,40 +1863,10 @@ export default function EnquiryDetailPage() {
 													<span className="font-bold text-white truncate">
 														{actor}
 													</span>
-													<span className="text-[10px] font-mono px-2 py-0.2 rounded-md bg-thermal-500/10 text-thermal-400 border border-thermal-500/20 font-bold uppercase">
-														{log.action.replace(/_/g, " ")}
-													</span>
+													{getActionBadge()}
 												</div>
 												<div className="text-slate-300 text-[11px] leading-relaxed">
-													{parsed.oldStatus && parsed.newStatus ? (
-														<span>
-															Changed status from{" "}
-															<strong className="text-amber-400 font-semibold">
-																{parsed.oldStatus}
-															</strong>{" "}
-															➔{" "}
-															<strong className="text-emerald-400 font-semibold">
-																{parsed.newStatus}
-															</strong>
-														</span>
-													) : parsed.filename ? (
-														<span>
-															Uploaded file:{" "}
-															<strong className="text-cyan-400 font-semibold">
-																{parsed.filename}
-															</strong>{" "}
-															({parsed.kind || "Attachment"})
-														</span>
-													) : parsed.remarks ? (
-														<span>
-															Review remarks:{" "}
-															<strong className="text-rose-300 italic">
-																&quot;{parsed.remarks}&quot;
-															</strong>
-														</span>
-													) : (
-														<span>{log.action}</span>
-													)}
+													{renderLogDetails()}
 												</div>
 											</div>
 										</div>

@@ -109,32 +109,56 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
       </div>
 
       {/* METRIC CARDS GRID */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         {/* 1. Total RFQs */}
+        <Link
+          href="/rfq?tab=all"
+          className="glass-card glass-card-hover p-4 rounded-2xl border border-slate-800 hover:border-cyan-500/50 relative overflow-hidden transition-all duration-200 cursor-pointer group block"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-400 group-hover:text-slate-200 uppercase tracking-wider transition-colors">
+              Total RFQs
+            </span>
+            <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 group-hover:scale-105 transition-transform">
+              <FileText className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2.5">
+            <span className="text-2xl font-extrabold text-white font-mono group-hover:text-cyan-400 transition-colors">
+              {summaryCards.totalRFQs}
+            </span>
+            <p className="text-[11px] text-slate-400 mt-0.5 flex items-center justify-between">
+              <span>All database RFQs</span>
+              <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 transition-colors" />
+            </p>
+          </div>
+        </Link>
+
+        {/* 2. Total Live */}
         <Link
           href="/rfq?tab=all"
           className="glass-card glass-card-hover p-4 rounded-2xl border border-slate-800 hover:border-thermal-500/50 relative overflow-hidden transition-all duration-200 cursor-pointer group block"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-400 group-hover:text-slate-200 uppercase tracking-wider transition-colors">
-              Total Live RFQs
+              Total Live
             </span>
             <div className="p-2 rounded-xl bg-thermal-500/10 text-thermal-400 border border-thermal-500/20 group-hover:scale-105 transition-transform">
-              <FileText className="w-4 h-4" />
+              <Layers className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2.5">
-            <span className="text-2xl font-extrabold text-white font-mono group-hover:text-thermal-400 transition-colors">
-              {summaryCards.totalRFQs}
+            <span className="text-2xl font-extrabold text-thermal-400 font-mono group-hover:text-thermal-300 transition-colors">
+              {summaryCards.totalLiveRFQs ?? summaryCards.totalRFQs}
             </span>
             <p className="text-[11px] text-slate-400 mt-0.5 flex items-center justify-between">
-              <span>All database enquiries</span>
+              <span>Active live pipeline</span>
               <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-thermal-400 transition-colors" />
             </p>
           </div>
         </Link>
 
-        {/* 2. Under Review */}
+        {/* 3. Under Review */}
         <Link
           href="/rfq?tab=review"
           className="glass-card glass-card-hover p-4 rounded-2xl border border-slate-800 hover:border-amber-500/50 relative overflow-hidden transition-all duration-200 cursor-pointer group block"
@@ -152,13 +176,13 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
               {summaryCards.pendingRFQs}
             </span>
             <p className="text-[11px] text-slate-400 mt-0.5 flex items-center justify-between">
-              <span>Awaiting costing & approval</span>
+              <span>Awaiting review & verify</span>
               <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 transition-colors" />
             </p>
           </div>
         </Link>
 
-        {/* 3. Approved Costing */}
+        {/* 4. Approved Costing */}
         <Link
           href="/rfq?tab=approved"
           className="glass-card glass-card-hover p-4 rounded-2xl border border-slate-800 hover:border-emerald-500/50 relative overflow-hidden transition-all duration-200 cursor-pointer group block"
@@ -173,16 +197,16 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
           </div>
           <div className="mt-2.5">
             <span className="text-2xl font-extrabold text-emerald-400 font-mono group-hover:text-emerald-300 transition-colors">
-              {summaryCards.approvedOffers}
+              {summaryCards.approvedRFQs ?? summaryCards.approvedOffers}
             </span>
             <p className="text-[11px] text-slate-400 mt-0.5 flex items-center justify-between">
-              <span>Costing approved by management</span>
+              <span>Costing approved</span>
               <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 transition-colors" />
             </p>
           </div>
         </Link>
 
-        {/* 4. Offers Sent */}
+        {/* 5. Offers Sent */}
         <Link
           href="/rfq?tab=offersent"
           className="glass-card glass-card-hover p-4 rounded-2xl border border-slate-800 hover:border-indigo-500/50 relative overflow-hidden transition-all duration-200 cursor-pointer group block"
@@ -197,10 +221,10 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
           </div>
           <div className="mt-2.5">
             <span className="text-2xl font-extrabold text-white font-mono group-hover:text-indigo-400 transition-colors">
-              {summaryCards.totalOffersGenerated}
+              {summaryCards.offersSentRFQs ?? summaryCards.totalOffersGenerated}
             </span>
             <p className="text-[11px] text-slate-400 mt-0.5 flex items-center justify-between">
-              <span>Official offers sent to customer</span>
+              <span>Offers sent to client</span>
               <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 transition-colors" />
             </p>
           </div>
