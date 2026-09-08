@@ -117,6 +117,7 @@ export interface DirectoryItem {
   email: string;
   role?: string;
   origName?: string;
+  aliases?: string[];
 }
 
 export const rfqService = {

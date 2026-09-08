@@ -285,6 +285,33 @@ export default function EnquiryDetailPage() {
 		return { ...base, ...enquiryForm };
 	}, [fetchedEnquiry, enquiryForm, isNew]);
 
+	// Helpers for matching legacy assignee strings / emails to canonical directory names
+	const currentTechVal = enquiry.technical || enquiry.assignedTo || "";
+	const matchedTechItem = useMemo(() => {
+		if (!currentTechVal) return null;
+		const norm = currentTechVal.trim().toLowerCase();
+		return technicalDirectory.find(
+			(d) =>
+				d.name.toLowerCase() === norm ||
+				(d.email && d.email.toLowerCase() === norm) ||
+				(d.aliases && d.aliases.some((a) => a.toLowerCase() === norm)),
+		);
+	}, [technicalDirectory, currentTechVal]);
+	const selectedTechValue = matchedTechItem ? matchedTechItem.name : currentTechVal;
+
+	const currentSalesVal = enquiry.salesResponsibility || "";
+	const matchedSalesItem = useMemo(() => {
+		if (!currentSalesVal) return null;
+		const norm = currentSalesVal.trim().toLowerCase();
+		return salesDirectory.find(
+			(d) =>
+				d.name.toLowerCase() === norm ||
+				(d.email && d.email.toLowerCase() === norm) ||
+				(d.aliases && d.aliases.some((a) => a.toLowerCase() === norm)),
+		);
+	}, [salesDirectory, currentSalesVal]);
+	const selectedSalesValue = matchedSalesItem ? matchedSalesItem.name : currentSalesVal;
+
 	const followupsList = useMemo(() => {
 		if (Array.isArray(enquiry.followups) && enquiry.followups.length > 0) {
 			return [...enquiry.followups].reverse();
@@ -1299,7 +1326,7 @@ export default function EnquiryDetailPage() {
 													</label>
 													<select
 														disabled={!canChangeAssignment}
-														value={enquiry.technical || enquiry.assignedTo || ""}
+														value={selectedTechValue}
 														onChange={(e) =>
 															setEnquiry({
 																...enquiry,
@@ -1314,14 +1341,11 @@ export default function EnquiryDetailPage() {
 																{item.name} {item.email ? `(${item.email})` : ""}
 															</option>
 														))}
-														{enquiry.technical &&
-															!technicalDirectory.some(
-																(d) => d.name === enquiry.technical,
-															) && (
-																<option value={enquiry.technical}>
-																	{enquiry.technical}
-																</option>
-															)}
+														{currentTechVal && !matchedTechItem && (
+															<option value={currentTechVal}>
+																{currentTechVal}
+															</option>
+														)}
 													</select>
 												</div>
 
@@ -1331,7 +1355,7 @@ export default function EnquiryDetailPage() {
 													</label>
 													<select
 														disabled={!canChangeAssignment}
-														value={enquiry.salesResponsibility || ""}
+														value={selectedSalesValue}
 														onChange={(e) =>
 															setEnquiry({
 																...enquiry,
@@ -1345,14 +1369,11 @@ export default function EnquiryDetailPage() {
 																{item.name} {item.email ? `(${item.email})` : ""}
 															</option>
 														))}
-														{enquiry.salesResponsibility &&
-															!salesDirectory.some(
-																(d) => d.name === enquiry.salesResponsibility,
-															) && (
-																<option value={enquiry.salesResponsibility}>
-																	{enquiry.salesResponsibility}
-																</option>
-															)}
+														{currentSalesVal && !matchedSalesItem && (
+															<option value={currentSalesVal}>
+																{currentSalesVal}
+															</option>
+														)}
 													</select>
 												</div>
 											</div>
