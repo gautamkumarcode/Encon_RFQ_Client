@@ -254,4 +254,9 @@ export const rfqService = {
     const res = await api.post(`/rfq/${id}/followup`, payload);
     return res.data;
   },
+
+  sendClientFollowupEmail: async (id: string | number, payload?: { clientEmail?: string }) => {
+    const res = await api.post(`/rfq/${id}/client-followup`, payload || {});
+    return res.data;
+  },
 };

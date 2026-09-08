@@ -846,6 +846,70 @@ export default function EnquiryDetailPage() {
 		}
 	};
 
+	const [sendingClientEmail, setSendingClientEmail] = useState(false);
+
+	const handleSendClientEmail = async () => {
+		if (!enquiryId) return;
+		if (!enquiry.email) {
+			showToast(
+				"Client Email Missing",
+				"Please enter a valid client email address first.",
+				"warning",
+			);
+			return;
+		}
+
+		showConfirm({
+			title: "Send Follow-up Email to Client?",
+			message: `Send an official post-offer follow-up email to ${enquiry.contactPerson || enquiry.companyName} at <${enquiry.email}>?`,
+			confirmText: "Send Email",
+			type: "info",
+			onConfirm: async () => {
+				setSendingClientEmail(true);
+				try {
+					const res = await rfqService.sendClientFollowupEmail(enquiryId, {
+						clientEmail: enquiry.email,
+					});
+
+					if (res?.data) {
+						queryClient.setQueryData(["enquiry", enquiryId], (oldData: any) => {
+							if (!oldData) return oldData;
+							const isWrapped = Boolean(oldData.data);
+							const baseObj = isWrapped ? oldData.data : oldData;
+							const updatedEnquiry = {
+								...baseObj,
+								followups: res.data.followups || baseObj.followups,
+								remarks: res.data.remarks ?? baseObj.remarks,
+								followupRemarks:
+									res.data.followupRemarks ?? baseObj.followupRemarks,
+								nextActionDate:
+									res.data.nextActionDate ?? baseObj.nextActionDate,
+								lastCallDate: res.data.lastCallDate ?? baseObj.lastCallDate,
+							};
+							return isWrapped
+								? { ...oldData, data: updatedEnquiry }
+								: updatedEnquiry;
+						});
+					}
+					queryClient.invalidateQueries({ queryKey: ["rfq-tracker"] });
+					showToast(
+						"Email Sent ✉️",
+						`Post-offer follow-up email delivered to ${enquiry.email}`,
+						"success",
+					);
+				} catch (err: any) {
+					showToast(
+						"Error",
+						err.message || "Failed to send client follow-up email",
+						"error",
+					);
+				} finally {
+					setSendingClientEmail(false);
+				}
+			},
+		});
+	};
+
 	// React Query: Directory Items
 	const { data: directory = [] } = useQuery<DirectoryItem[]>({
 		queryKey: ["directory"],
@@ -1394,6 +1458,16 @@ export default function EnquiryDetailPage() {
 								title="Push customer & RFQ parameters to Offer & Costing Automation engine">
 								<ExternalLink className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />{" "}
 								Send to Automation
+							</button>
+
+							<button
+								type="button"
+								onClick={handleSendClientEmail}
+								disabled={sendingClientEmail || !enquiry.email}
+								className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-cyan-50 dark:bg-cyan-950/50 hover:bg-cyan-100 dark:hover:bg-cyan-900/60 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-500/40 shadow-2xs transition-all flex items-center justify-center gap-1.5 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+								title="Send post-offer follow-up email directly to client email">
+								<Send className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />{" "}
+								{sendingClientEmail ? "Sending..." : "Email Client Follow-up"}
 							</button>
 						</>
 					)}
@@ -2055,11 +2129,23 @@ export default function EnquiryDetailPage() {
 									</p>
 								</div>
 							</div>
-							{enquiry.lastCallDate && (
-								<span className="text-[11px] px-3 py-1 rounded-lg bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-semibold border border-slate-300/60 dark:border-slate-700">
-									Last Call: {enquiry.lastCallDate}
-								</span>
-							)}
+							<div className="flex items-center gap-2">
+								{enquiry.lastCallDate && (
+									<span className="text-[11px] px-3 py-1 rounded-lg bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-semibold border border-slate-300/60 dark:border-slate-700">
+										Last Call: {enquiry.lastCallDate}
+									</span>
+								)}
+								{!isNew && (
+									<button
+										type="button"
+										onClick={handleSendClientEmail}
+										disabled={sendingClientEmail || !enquiry.email}
+										className="px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-800 text-white shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+										<Send className="w-3.5 h-3.5" />
+										{sendingClientEmail ? "Sending..." : "Send Client Email"}
+									</button>
+								)}
+							</div>
 						</div>
 
 						<div className="space-y-3">
