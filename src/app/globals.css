@@ -214,3 +214,76 @@ html.light ::-webkit-scrollbar-thumb:hover {
   border-color: #334155;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
+
+/* ─── High Contrast Enterprise Badges for Light & Dark Mode ─── */
+.item-code-badge {
+  background-color: #0f172a !important;
+  color: #38bdf8 !important;
+  border: 1px solid #0284c7 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
+}
+
+html.light .item-code-badge {
+  background-color: #f1f5f9 !important;
+  color: #0369a1 !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: none !important;
+}
+
+html.light .cat-badge-emerald {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+  border-color: #6ee7b7 !important;
+}
+
+html.light .cat-badge-sky {
+  background-color: #e0f2fe !important;
+  color: #075985 !important;
+  border-color: #7dd3fc !important;
+}
+
+html.light .cat-badge-amber {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  border-color: #fcd34d !important;
+}
+
+html.light .cat-badge-cyan {
+  background-color: #cff4fc !important;
+  color: #055160 !important;
+  border-color: #67e8f9 !important;
+}
+
+html.light .cat-badge-purple {
+  background-color: #f3e8ff !important;
+  color: #6b21a8 !important;
+  border-color: #d8b4fe !important;
+}
+
+html.light .cat-badge-rose {
+  background-color: #ffe4e6 !important;
+  color: #9f1239 !important;
+  border-color: #fda4af !important;
+}
+
+html.light .cat-badge-indigo {
+  background-color: #e0e7ff !important;
+  color: #3730a3 !important;
+  border-color: #a5b4fc !important;
+}
+
+html.light .cat-badge-teal {
+  background-color: #ccfbf1 !important;
+  color: #115e59 !important;
+  border-color: #5eead4 !important;
+}
+
+html.light .vendor-badge {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .rate-current {
+  color: #047857 !important;
+}

@@ -15,6 +15,7 @@ import {
   Lock,
   FileSpreadsheet,
   CheckSquare,
+  Calculator,
   User as UserIcon,
   X,
 } from 'lucide-react';
@@ -32,6 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onMobileCl
   const navItems = [
     { label: 'Dashboard', path: '/', icon: LayoutDashboard, perm: null },
     { label: 'RFQ & Offer Tracker', path: '/rfq', icon: FileSpreadsheet, perm: null },
+    { label: 'Price & Costing Master', path: '/costing', icon: Calculator, perm: null },
     { label: 'Admin Review Portal', path: '/review', icon: CheckSquare, perm: null, reviewOnly: true },
     { label: 'User Management', path: '/users', icon: Users, perm: 'USER_MGMT', adminOnly: true },
     { label: 'Role & Permissions', path: '/roles', icon: ShieldAlert, perm: null, adminOnly: true },

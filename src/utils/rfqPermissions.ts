@@ -24,6 +24,19 @@ export function getRolePermissions(userRoleRaw?: string) {
 
 	const isTechnicalOnly = userRole === "TECHNICAL_PERSON" || (userRole.includes("TECH") && !userRole.includes("ADMIN") && !userRole.includes("SALES"));
 
+	// Purchase price / cost master visibility — PURCHASE team and above only.
+	// All other roles see only the final selling price.
+	const canViewPurchasePrices =
+		["ADMIN", "CO", "GM", "PRODUCTION_HEAD", "PURCHASE"].includes(userRole) ||
+		userRole.includes("PURCHASE") ||
+		userRole.includes("ADMIN");
+
+	// Can edit purchase/cost rates in the Master Price Catalog
+	const canEditPurchasePrices =
+		["ADMIN", "PURCHASE"].includes(userRole) ||
+		userRole.includes("PURCHASE") ||
+		userRole.includes("ADMIN");
+
 	return {
 		userRole,
 		canReview,
@@ -31,5 +44,7 @@ export function getRolePermissions(userRoleRaw?: string) {
 		canChangeAssignment,
 		canChangeStatus,
 		isTechnicalOnly,
+		canViewPurchasePrices,
+		canEditPurchasePrices,
 	};
 }
