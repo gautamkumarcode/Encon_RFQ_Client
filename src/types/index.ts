@@ -111,7 +111,21 @@ export interface DashboardSummary {
     approved: number;
     revenue: number;
   }>;
+  followupDueRFQs?: FollowupDueRFQ[];
 }
+
+export interface FollowupDueRFQ {
+  id: string;
+  rfqNumber: string;
+  clientName: string;
+  contactPerson: string;
+  assignedTo: string;
+  status: string;
+  nextActionDate: string;
+  daysOverdue: number;
+  itemDescription: string;
+}
+
 
 export interface EmployeeKPI {
   email: string;

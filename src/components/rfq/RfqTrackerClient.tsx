@@ -798,18 +798,37 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
                           </div>
                         ) : (
                           <div className="flex items-center justify-between gap-1 group/remark">
-                            <span
-                              className={`text-slate-300 truncate text-xs ${canEdit ? 'cursor-pointer hover:text-white hover:underline' : ''}`}
-                              title={e.remarks || e.followupRemarks || e.pendingRemarks || ''}
-                              onClick={() => {
-                                if (canEdit) {
-                                  setEditingRemarkId(e.id);
-                                  setEditingRemarkValue(e.remarks || e.followupRemarks || e.pendingRemarks || '');
-                                }
-                              }}
-                            >
-                              {e.remarks || e.followupRemarks || e.pendingRemarks || <span className="italic text-slate-500">—</span>}
-                            </span>
+                            <div className="min-w-0 flex-1">
+                              <span
+                                className={`text-slate-300 truncate text-xs block ${canEdit ? 'cursor-pointer hover:text-white hover:underline' : ''}`}
+                                title={e.remarks || e.followupRemarks || e.pendingRemarks || ''}
+                                onClick={() => {
+                                  if (canEdit) {
+                                    setEditingRemarkId(e.id);
+                                    setEditingRemarkValue(e.remarks || e.followupRemarks || e.pendingRemarks || '');
+                                  }
+                                }}
+                              >
+                                {e.remarks || e.followupRemarks || e.pendingRemarks || <span className="italic text-slate-500">—</span>}
+                              </span>
+                              {/* Show remark author from latest followup */}
+                              {e.followups && e.followups.length > 0 && (() => {
+                                const latest = e.followups[e.followups.length - 1];
+                                const authorFirst = (latest.author || '').split(' ')[0];
+                                const dateStr = latest.createdAt ? latest.createdAt.split('T')[0] : '';
+                                return authorFirst ? (
+                                  <div className="flex items-center gap-1 mt-0.5">
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0 rounded text-[9px] font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                                      <UserCheck className="w-2.5 h-2.5" />
+                                      {authorFirst}
+                                    </span>
+                                    {dateStr && (
+                                      <span className="text-[9px] text-slate-500">{dateStr}</span>
+                                    )}
+                                  </div>
+                                ) : null;
+                              })()}
+                            </div>
                             <div className="flex items-center gap-0.5 opacity-0 group-hover/remark:opacity-100 transition-opacity flex-shrink-0">
                               <button
                                 onClick={(evt) => {
@@ -836,6 +855,7 @@ export default function RfqTrackerClient({ initialData }: RfqTrackerClientProps)
                             </div>
                           </div>
                         )}
+
                       </td>
 
                       {/* STATUS */}

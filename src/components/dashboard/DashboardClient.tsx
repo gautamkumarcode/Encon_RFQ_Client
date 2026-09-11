@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
-import { DashboardSummary } from '@/types';
+import { DashboardSummary, FollowupDueRFQ } from '@/types';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -26,6 +26,10 @@ import {
   ArrowUpRight,
   UserCheck,
   ShieldAlert,
+  Bell,
+  AlertTriangle,
+  Phone,
+  User,
 } from 'lucide-react';
 
 interface DashboardClientProps {
@@ -71,9 +75,11 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
     );
   }
 
-  const { summaryCards, recentRFQs, recentOffers, topEmployees, monthlyTrends } = data;
+  const { summaryCards, recentRFQs, recentOffers, topEmployees, monthlyTrends, followupDueRFQs } = data;
   const isFullAccessRole = ['ADMIN', 'CO', 'GM', 'PRODUCTION_HEAD', 'SALES_MARKETING'].includes((user?.role || '').toUpperCase());
   const userName = user?.name || 'Encon User';
+  const followupList: FollowupDueRFQ[] = followupDueRFQs || [];
+  const followupCount = followupList.length;
 
   return (
     <div className="space-y-4">
@@ -310,6 +316,70 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
           </div>
         </div>
       </div>
+
+      {/* FOLLOW-UP DUE ALERT PANEL */}
+      {followupCount > 0 && (
+        <div className="glass-card p-4 rounded-2xl border border-rose-500/40 bg-rose-500/5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-sm text-white flex items-center gap-2">
+              <Bell className="w-4 h-4 text-rose-400 animate-pulse" />
+              Follow-up Required
+              <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500 text-white">
+                {followupCount}
+              </span>
+            </h3>
+            <Link href="/rfq?tab=followup" className="text-xs font-bold text-rose-400 hover:text-rose-300 flex items-center gap-1">
+              View All <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {followupList.slice(0, 6).map((rfq) => {
+              const isOverdue = rfq.daysOverdue > 0;
+              const borderColor = isOverdue ? 'border-rose-500/40 hover:border-rose-400/60' : 'border-amber-500/40 hover:border-amber-400/60';
+              const badgeColor = isOverdue ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+              const labelColor = isOverdue ? 'text-rose-400' : 'text-amber-400';
+              return (
+                <Link
+                  key={rfq.id}
+                  href={`/rfq/${rfq.id}`}
+                  className={`p-3 rounded-xl bg-slate-950 border ${borderColor} flex flex-col gap-1.5 text-xs transition-all cursor-pointer group block hover:bg-slate-900/80`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-thermal-400 font-mono group-hover:underline">{rfq.rfqNumber}</span>
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border ${badgeColor}`}>
+                      {isOverdue ? `${rfq.daysOverdue}d overdue` : 'Due Today'}
+                    </span>
+                  </div>
+                  <p className="text-slate-200 font-semibold truncate">{rfq.clientName}</p>
+                  <p className="text-slate-400 text-[11px] line-clamp-1">{rfq.itemDescription}</p>
+                  <div className="flex items-center justify-between mt-0.5">
+                    <span className="flex items-center gap-1 text-slate-500 text-[10px]">
+                      <User className="w-3 h-3" />{rfq.assignedTo}
+                    </span>
+                    <span className={`text-[10px] font-semibold ${labelColor}`}>
+                      Action: {rfq.nextActionDate}
+                    </span>
+                  </div>
+                  {rfq.contactPerson && (
+                    <span className="flex items-center gap-1 text-slate-500 text-[10px]">
+                      <Phone className="w-3 h-3" />{rfq.contactPerson}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+
+          {followupCount > 6 && (
+            <div className="mt-2.5 text-center">
+              <Link href="/rfq?tab=followup" className="text-xs text-rose-400 hover:text-rose-300 font-semibold">
+                + {followupCount - 6} more RFQs need follow-up
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* RECENT RFQS & OFFERS DUAL TABLE */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
