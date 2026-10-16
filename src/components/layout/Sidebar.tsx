@@ -3,7 +3,6 @@
 import {
 	BarChart3,
 	Bell,
-	Calculator,
 	CheckSquare,
 	Cpu,
 	FileSpreadsheet,
@@ -40,13 +39,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 			icon: FileSpreadsheet,
 			perm: null,
 		},
-		{
-			label: "Pricing",
-			path: "/pricing",
-			icon: Calculator,
-			perm: null,
-		},
-		{ label: "Offer Automation", path: "/automation", icon: Cpu, perm: null },
 		{
 			label: "Admin Review Portal",
 			path: "/review",

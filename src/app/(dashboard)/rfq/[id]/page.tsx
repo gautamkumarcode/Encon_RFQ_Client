@@ -12,21 +12,19 @@ import {
 	ChevronUp,
 	Clock,
 	Download,
-	ExternalLink,
 	Eye,
 	Folder,
 	History,
-	Image as ImageIcon,
 	Phone,
 	Plus,
 	RefreshCw,
-	Send,
+	Trash2,
 	UserCheck,
 	X,
 } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
 	ActivityLogItem,
 	Attachment,
@@ -36,13 +34,13 @@ import {
 } from "../../../../services/rfqService";
 
 import { GmailEmailViewer } from "@/components/rfq/GmailEmailViewer";
-import { getRolePermissions } from "@/utils/rfqPermissions";
 import {
-	isImageFile,
 	formatFileSize,
-	STATUS_OPTIONS,
 	getAttachmentUrl,
+	isImageFile,
+	STATUS_OPTIONS,
 } from "@/utils/rfqHelpers";
+import { getRolePermissions } from "@/utils/rfqPermissions";
 
 export default function EnquiryDetailPage() {
 	const params = useParams();
@@ -128,11 +126,14 @@ export default function EnquiryDetailPage() {
 							...baseObj,
 							followups: res.data.followups || baseObj.followups,
 							remarks: res.data.remarks ?? baseObj.remarks,
-							followupRemarks: res.data.followupRemarks ?? baseObj.followupRemarks,
+							followupRemarks:
+								res.data.followupRemarks ?? baseObj.followupRemarks,
 							nextActionDate: res.data.nextActionDate ?? baseObj.nextActionDate,
 							lastCallDate: res.data.lastCallDate ?? baseObj.lastCallDate,
 						};
-						return isWrapped ? { ...oldData, data: updatedEnquiry } : updatedEnquiry;
+						return isWrapped
+							? { ...oldData, data: updatedEnquiry }
+							: updatedEnquiry;
 					});
 				}
 				queryClient.invalidateQueries({ queryKey: ["rfq-tracker"] });
@@ -161,6 +162,39 @@ export default function EnquiryDetailPage() {
 		} finally {
 			setLoggingCall(false);
 		}
+	};
+
+	const handleDeleteFollowup = (entry: any) => {
+		if (!enquiryId || !entry?._id) return;
+		showConfirm({
+			title: "Delete follow-up?",
+			message:
+				"This follow-up remark will be removed from the enquiry history and database.",
+			confirmText: "Delete",
+			type: "danger",
+			onConfirm: async () => {
+				try {
+					await rfqService.deleteFollowup(enquiryId, entry._id);
+					await queryClient.invalidateQueries({
+						queryKey: ["enquiry", enquiryId],
+					});
+					await queryClient.invalidateQueries({ queryKey: ["rfq-tracker"] });
+					showToast(
+						"Follow-up Deleted",
+						"The follow-up remark was removed.",
+						"success",
+					);
+				} catch (err: any) {
+					showToast(
+						"Delete Error",
+						err?.response?.data?.message ||
+							err.message ||
+							"Failed to delete follow-up",
+						"error",
+					);
+				}
+			},
+		});
 	};
 
 	const [sendingClientEmail, setSendingClientEmail] = useState(false);
@@ -276,8 +310,8 @@ export default function EnquiryDetailPage() {
 	const fetchedEnquiry =
 		enquiryResponse?.data ||
 		(enquiryResponse &&
-			typeof enquiryResponse === "object" &&
-			("_id" in enquiryResponse || "rfqId" in enquiryResponse)
+		typeof enquiryResponse === "object" &&
+		("_id" in enquiryResponse || "rfqId" in enquiryResponse)
 			? enquiryResponse
 			: null);
 	const historyLogs: ActivityLogItem[] = enquiryResponse?.history || [];
@@ -294,12 +328,16 @@ export default function EnquiryDetailPage() {
 		const norm = currentTechVal.trim().toLowerCase();
 		return technicalDirectory.find(
 			(d) =>
+				(d.id && d.id === enquiry.technicalId) ||
+				(d.id && d.id === enquiry.assignedToId) ||
 				d.name.toLowerCase() === norm ||
 				(d.email && d.email.toLowerCase() === norm) ||
 				(d.aliases && d.aliases.some((a) => a.toLowerCase() === norm)),
 		);
 	}, [technicalDirectory, currentTechVal]);
-	const selectedTechValue = matchedTechItem ? matchedTechItem.name : currentTechVal;
+	const selectedTechValue = matchedTechItem
+		? matchedTechItem.id || matchedTechItem.name
+		: currentTechVal;
 
 	const currentSalesVal = enquiry.salesResponsibility || "";
 	const matchedSalesItem = useMemo(() => {
@@ -307,12 +345,15 @@ export default function EnquiryDetailPage() {
 		const norm = currentSalesVal.trim().toLowerCase();
 		return salesDirectory.find(
 			(d) =>
+				(d.id && d.id === enquiry.salesResponsibilityId) ||
 				d.name.toLowerCase() === norm ||
 				(d.email && d.email.toLowerCase() === norm) ||
 				(d.aliases && d.aliases.some((a) => a.toLowerCase() === norm)),
 		);
 	}, [salesDirectory, currentSalesVal]);
-	const selectedSalesValue = matchedSalesItem ? matchedSalesItem.name : currentSalesVal;
+	const selectedSalesValue = matchedSalesItem
+		? matchedSalesItem.id || matchedSalesItem.name
+		: currentSalesVal;
 
 	const followupsList = useMemo(() => {
 		if (Array.isArray(enquiry.followups) && enquiry.followups.length > 0) {
@@ -327,8 +368,17 @@ export default function EnquiryDetailPage() {
 				if (match) {
 					const headerParts = match[1].split(/\s*-\s*/);
 					const rawType = (headerParts[0] || "Remark").trim();
-					const author = (headerParts[1] || enquiry.assignedTo || enquiry.companyName || "Team Member").trim();
-					const createdAt = (headerParts[2] || enquiry.dateReceived || "").trim();
+					const author = (
+						headerParts[1] ||
+						enquiry.assignedTo ||
+						enquiry.companyName ||
+						"Team Member"
+					).trim();
+					const createdAt = (
+						headerParts[2] ||
+						enquiry.dateReceived ||
+						""
+					).trim();
 					return {
 						_id: `legacy-${idx}`,
 						type: rawType,
@@ -444,54 +494,6 @@ export default function EnquiryDetailPage() {
 			isReady: hasDetails && hasQuestionnaire && hasCosting,
 		};
 	}, [enquiry, questionnaireFiles, costingFiles]);
-
-	const handleLaunchAutomation = async () => {
-		if (!enquiryId) {
-			showToast(
-				"Action Required",
-				"Please save the enquiry first before launching automation.",
-				"warning",
-			);
-			return;
-		}
-		try {
-			const res = await rfqService.getAutomationUrl(enquiryId);
-			if (res.targetUrl) {
-				window.open(res.targetUrl, "_blank", "noopener,noreferrer");
-				showToast(
-					"Automation Launched",
-					"Opening Offer Generator dashboard…",
-					"success",
-				);
-			} else {
-				throw new Error("Automation URL not returned");
-			}
-		} catch (err: any) {
-			// Fallback: build the dashboard URL directly with just the identifiers.
-			// The offer generator will pull client details from the Encon backend itself.
-			const isLocal =
-				typeof window !== "undefined" &&
-				window.location.hostname.includes("localhost");
-			const baseUrl = (
-				process.env.NEXT_PUBLIC_AUTOMATION_URL ||
-				(isLocal ? "http://localhost:8000" : "https://automation.encon.co.in")
-			).trim();
-			const params = new URLSearchParams({
-				enquiry_id: String(enquiry.id || enquiryId),
-				rfq_id: enquiry.rfqId || "",
-			});
-			window.open(
-				`${baseUrl.replace(/\/+$/, "")}/?${params.toString()}`,
-				"_blank",
-				"noopener,noreferrer",
-			);
-			showToast(
-				"Automation Launched 🚀",
-				"Opening Offer Generator dashboard…",
-				"success",
-			);
-		}
-	};
 
 	const setEnquiry = (updater: any) => {
 		if (typeof updater === "function") {
@@ -805,16 +807,6 @@ export default function EnquiryDetailPage() {
 							</button>
 						</>
 					)}
-					{!isNew && (enquiry.status || "").toLowerCase() === "open" && (
-						<button
-							type="button"
-							onClick={handleLaunchAutomation}
-							className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/40 shadow-2xs transition-all flex items-center justify-center gap-1.5 whitespace-nowrap"
-							title="Push customer & RFQ parameters to Offer & Costing Automation engine">
-							<ExternalLink className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />{" "}
-							Send to Automation
-						</button>
-					)}
 					{canEdit && (enquiry.status || "").toLowerCase() === "open" && (
 						<button
 							type="button"
@@ -866,40 +858,40 @@ export default function EnquiryDetailPage() {
 			{/* ADMIN REVIEW FEEDBACK BANNER (IF REJECTED / CHANGES REQUESTED) */}
 			{(enquiry.followupRemarks?.includes("[Review Feedback]") ||
 				enquiry.remarks?.includes("[Review Feedback]")) && (
-					<div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 shadow-lg flex items-start justify-between gap-3">
-						<div className="flex items-start gap-3">
-							<AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-							<div className="space-y-1">
-								<h4 className="text-xs font-bold text-rose-400 uppercase tracking-wider">
-									⚠️ Admin Review Feedback — Changes Requested
-								</h4>
-								<p className="text-xs text-rose-200 leading-relaxed font-semibold">
-									{enquiry.remarks?.includes("[Review Feedback]")
-										? enquiry.remarks.replace("[Review Feedback]:", "").trim()
-										: enquiry.followupRemarks
+				<div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 shadow-lg flex items-start justify-between gap-3">
+					<div className="flex items-start gap-3">
+						<AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+						<div className="space-y-1">
+							<h4 className="text-xs font-bold text-rose-400 uppercase tracking-wider">
+								⚠️ Admin Review Feedback — Changes Requested
+							</h4>
+							<p className="text-xs text-rose-200 leading-relaxed font-semibold">
+								{enquiry.remarks?.includes("[Review Feedback]")
+									? enquiry.remarks.replace("[Review Feedback]:", "").trim()
+									: enquiry.followupRemarks
 											?.substring(
 												enquiry.followupRemarks.indexOf("[Review Feedback]"),
 											)
 											.replace("[Review Feedback]:", "")
 											.trim()}
-								</p>
-								<p className="text-[11px] text-rose-400/80 mt-0.5">
-									This RFQ has been sent back to <strong>Open</strong> status.
-									Please update the details, costing, or questionnaire and
-									resubmit for review once ready.
-								</p>
-							</div>
+							</p>
+							<p className="text-[11px] text-rose-400/80 mt-0.5">
+								This RFQ has been sent back to <strong>Open</strong> status.
+								Please update the details, costing, or questionnaire and
+								resubmit for review once ready.
+							</p>
 						</div>
-						{canEdit && (
-							<button
-								type="button"
-								onClick={handleResolveFeedback}
-								className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-all shrink-0 flex items-center gap-1.5">
-								<CheckCircle2 className="w-3.5 h-3.5" /> Mark Resolved ✓
-							</button>
-						)}
 					</div>
-				)}
+					{canEdit && (
+						<button
+							type="button"
+							onClick={handleResolveFeedback}
+							className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-all shrink-0 flex items-center gap-1.5">
+							<CheckCircle2 className="w-3.5 h-3.5" /> Mark Resolved ✓
+						</button>
+					)}
+				</div>
+			)}
 
 			{/* MAIN LAYOUT: 2 CONTAINERS */}
 			<div className="space-y-4 w-full">
@@ -1227,7 +1219,11 @@ export default function EnquiryDetailPage() {
 											{enquiry.mobile && <p>Mobile: {enquiry.mobile}</p>}
 											{enquiry.email && <p>Email: {enquiry.email}</p>}
 											<p className="pt-1 text-[10px] font-mono text-cyan-600 dark:text-cyan-400">
-												Tech: {enquiry.technical || enquiry.assignedTo || "Unassigned"} | Sales: {enquiry.salesResponsibility || "Unassigned"}
+												Tech:{" "}
+												{enquiry.technical ||
+													enquiry.assignedTo ||
+													"Unassigned"}{" "}
+												| Sales: {enquiry.salesResponsibility || "Unassigned"}
 											</p>
 										</div>
 										<button
@@ -1252,7 +1248,10 @@ export default function EnquiryDetailPage() {
 													disabled={!canEdit}
 													value={enquiry.companyName || ""}
 													onChange={(e) =>
-														setEnquiry({ ...enquiry, companyName: e.target.value })
+														setEnquiry({
+															...enquiry,
+															companyName: e.target.value,
+														})
 													}
 													className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
 												/>
@@ -1267,7 +1266,10 @@ export default function EnquiryDetailPage() {
 														disabled={!canEdit}
 														value={enquiry.contactPerson || ""}
 														onChange={(e) =>
-															setEnquiry({ ...enquiry, contactPerson: e.target.value })
+															setEnquiry({
+																...enquiry,
+																contactPerson: e.target.value,
+															})
 														}
 														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
 													/>
@@ -1315,7 +1317,10 @@ export default function EnquiryDetailPage() {
 													disabled={!canEdit}
 													value={enquiry.itemDescription || ""}
 													onChange={(e) =>
-														setEnquiry({ ...enquiry, itemDescription: e.target.value })
+														setEnquiry({
+															...enquiry,
+															itemDescription: e.target.value,
+														})
 													}
 													className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
 												/>
@@ -1329,18 +1334,29 @@ export default function EnquiryDetailPage() {
 													<select
 														disabled={!canChangeAssignment}
 														value={selectedTechValue}
-														onChange={(e) =>
+														onChange={(e) => {
+															const item = technicalDirectory.find(
+																(entry) =>
+																	(entry.id || entry.name) === e.target.value,
+															);
 															setEnquiry({
 																...enquiry,
-																technical: e.target.value,
-																assignedTo: e.target.value,
-															})
-														}
+																technical: item?.name || "",
+																assignedTo: item?.name || "",
+																technicalId: item?.id || "",
+																assignedToId: item?.id || "",
+															});
+														}}
 														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canChangeAssignment ? "opacity-70 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}>
-														<option value="">Select Technical Assignee...</option>
+														<option value="">
+															Select Technical Assignee...
+														</option>
 														{technicalDirectory.map((item) => (
-															<option key={item.name} value={item.name}>
-																{item.name} {item.email ? `(${item.email})` : ""}
+															<option
+																key={item.id || item.name}
+																value={item.id || item.name}>
+																{item.name}{" "}
+																{item.email ? `(${item.email})` : ""}
 															</option>
 														))}
 														{currentTechVal && !matchedTechItem && (
@@ -1358,17 +1374,25 @@ export default function EnquiryDetailPage() {
 													<select
 														disabled={!canChangeAssignment}
 														value={selectedSalesValue}
-														onChange={(e) =>
+														onChange={(e) => {
+															const item = salesDirectory.find(
+																(entry) =>
+																	(entry.id || entry.name) === e.target.value,
+															);
 															setEnquiry({
 																...enquiry,
-																salesResponsibility: e.target.value,
-															})
-														}
+																salesResponsibility: item?.name || "",
+																salesResponsibilityId: item?.id || "",
+															});
+														}}
 														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canChangeAssignment ? "opacity-70 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}>
 														<option value="">Unassigned</option>
 														{salesDirectory.map((item) => (
-															<option key={item.name} value={item.name}>
-																{item.name} {item.email ? `(${item.email})` : ""}
+															<option
+																key={item.id || item.name}
+																value={item.id || item.name}>
+																{item.name}{" "}
+																{item.email ? `(${item.email})` : ""}
 															</option>
 														))}
 														{currentSalesVal && !matchedSalesItem && (
@@ -1405,7 +1429,10 @@ export default function EnquiryDetailPage() {
 														placeholder="e.g. ENC/OFR/044"
 														value={enquiry.offerNo || ""}
 														onChange={(e) =>
-															setEnquiry({ ...enquiry, offerNo: e.target.value })
+															setEnquiry({
+																...enquiry,
+																offerNo: e.target.value,
+															})
 														}
 														className={`w-full bg-white dark:bg-slate-950 border border-indigo-900/80 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-indigo-500 focus:outline-none font-mono ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
 													/>
@@ -1428,21 +1455,6 @@ export default function EnquiryDetailPage() {
 														))}
 													</select>
 												</div>
-											</div>
-
-											<div>
-												<label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
-													Remarks
-												</label>
-												<textarea
-													rows={2}
-													disabled={!canEdit}
-													value={enquiry.remarks || ""}
-													onChange={(e) =>
-														setEnquiry({ ...enquiry, remarks: e.target.value })
-													}
-													className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
-												/>
 											</div>
 										</div>
 									</div>
@@ -1488,7 +1500,8 @@ export default function EnquiryDetailPage() {
 												Client Call & Follow-up History Log
 											</h3>
 											<p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-												Record discussions & follow-ups side-by-side with client info
+												Record discussions & follow-ups side-by-side with client
+												info
 											</p>
 										</div>
 									</div>
@@ -1612,7 +1625,7 @@ export default function EnquiryDetailPage() {
 																	hour: "2-digit",
 																	minute: "2-digit",
 																},
-														  )
+															)
 													: "N/A";
 
 												return (
@@ -1626,10 +1639,10 @@ export default function EnquiryDetailPage() {
 																		isCall
 																			? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
 																			: isEmail
-																			? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30"
-																			: isMeeting
-																			? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30"
-																			: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+																				? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30"
+																				: isMeeting
+																					? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30"
+																					: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
 																	}`}>
 																	{typeLabel}
 																</span>
@@ -1638,8 +1651,19 @@ export default function EnquiryDetailPage() {
 																	<span>{entry.author || "User"}</span>
 																</div>
 															</div>
-															<div className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
-																{formattedDate}
+															<div className="flex items-center gap-2">
+																<div className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+																	{formattedDate}
+																</div>
+																{canEdit && entry._id && (
+																	<button
+																		type="button"
+																		onClick={() => handleDeleteFollowup(entry)}
+																		className="text-slate-500 hover:text-red-400"
+																		title="Delete follow-up remark">
+																		<Trash2 className="w-3.5 h-3.5" />
+																	</button>
+																)}
 															</div>
 														</div>
 
@@ -1774,9 +1798,7 @@ export default function EnquiryDetailPage() {
 
 										if (u.status) changes.push(`Status: ${u.status}`);
 										if (u.technical || u.assignedTo)
-											changes.push(
-												`Assignee: ${u.technical || u.assignedTo}`,
-											);
+											changes.push(`Assignee: ${u.technical || u.assignedTo}`);
 										if (u.salesResponsibility)
 											changes.push(`Sales: ${u.salesResponsibility}`);
 										if (u.offerNo) changes.push(`Offer No: ${u.offerNo}`);
@@ -1815,9 +1837,7 @@ export default function EnquiryDetailPage() {
 										);
 										if (keys.length > 0) {
 											const formattedKeys = keys
-												.map((k) =>
-													k.replace(/([A-Z])/g, " $1").toLowerCase(),
-												)
+												.map((k) => k.replace(/([A-Z])/g, " $1").toLowerCase())
 												.join(", ");
 											return (
 												<span className="text-slate-300">
