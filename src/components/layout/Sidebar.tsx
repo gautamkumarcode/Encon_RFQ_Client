@@ -3,6 +3,7 @@
 import {
 	BarChart3,
 	Bell,
+	Calculator,
 	CheckSquare,
 	Cpu,
 	FileSpreadsheet,
@@ -75,6 +76,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 			adminOnly: true,
 		},
 		{ label: "Notifications", path: "/notifications", icon: Bell, perm: null },
+		{
+			label: "Tally ERP Data",
+			path: "/tally",
+			icon: Calculator,
+			perm: "TALLY",
+			adminOnly: true,
+		},
 		{
 			label: "Future Extensions",
 			path: "/future-modules",
