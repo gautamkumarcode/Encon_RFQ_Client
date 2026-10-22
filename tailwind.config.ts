@@ -10,8 +10,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Arimo', 'var(--font-arimo)', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        arimo: ['Arimo', 'var(--font-arimo)', 'sans-serif'],
+        sans: ['Inter', 'var(--font-inter)', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        inter: ['Inter', 'var(--font-inter)', 'sans-serif'],
       },
       colors: {
         thermal: {
