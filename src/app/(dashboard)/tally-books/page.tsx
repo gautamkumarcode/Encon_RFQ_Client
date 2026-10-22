@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { api } from '../../../services/api';
 import {
@@ -16,9 +16,13 @@ import {
   Wallet,
   X,
   ChevronRight,
+  ChevronLeft,
+  Receipt,
+  Truck,
+  Loader2,
 } from 'lucide-react';
 
-type TabKey = 'Debtors' | 'Creditors' | 'Bank' | 'Cash' | 'Orders';
+type TabKey = 'Debtors' | 'Creditors' | 'Bank' | 'Cash' | 'SalesReg' | 'PurchaseReg';
 
 interface BookRow {
   id: string;
@@ -39,6 +43,23 @@ interface BooksResponse {
   total: number;
   lastSynced: string | null;
   data: BookRow[];
+}
+
+interface VoucherRow {
+  id: string;
+  company: string;
+  voucherType: string;
+  voucherNumber: string;
+  date: string;
+  partyName: string;
+  amount: number;
+}
+interface VouchersResponse {
+  success: boolean;
+  count: number;
+  totalAmount: number;
+  lastSynced: string | null;
+  data: VoucherRow[];
 }
 
 interface CatSummary {
@@ -117,12 +138,100 @@ const AmountCell = ({ value, muted }: { value: number; muted?: boolean }) => (
   </td>
 );
 
+// Reusable pagination footer: rows-per-page picker, range indicator and
+// windowed page numbers (1 … 4 5 6 … 20). Used by every table on the page.
+const PaginationBar = ({
+  page,
+  pageSize,
+  total,
+  onPage,
+  onPageSize,
+}: {
+  page: number;
+  pageSize: number;
+  total: number;
+  onPage: (p: number) => void;
+  onPageSize: (n: number) => void;
+}) => {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const current = Math.min(Math.max(1, page), totalPages);
+  const from = total === 0 ? 0 : (current - 1) * pageSize + 1;
+  const to = Math.min(current * pageSize, total);
+  const navBtn =
+    'inline-flex items-center gap-1 rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-300 transition-colors hover:border-slate-600 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-40';
+  const pages: (number | 'gap')[] = [];
+  if (totalPages <= 7) {
+    for (let n = 1; n <= totalPages; n++) pages.push(n);
+  } else {
+    pages.push(1);
+    if (current > 3) pages.push('gap');
+    for (let n = Math.max(2, current - 1); n <= Math.min(totalPages - 1, current + 1); n++) pages.push(n);
+    if (current < totalPages - 2) pages.push('gap');
+    pages.push(totalPages);
+  }
+  return (
+    <div className="flex flex-col items-center justify-between gap-2 border-t border-slate-800 bg-slate-900/60 px-4 py-2.5 sm:flex-row">
+      <div className="flex items-center gap-2 text-[11px] text-slate-500">
+        <span>Rows per page</span>
+        <select
+          value={pageSize}
+          onChange={(e) => onPageSize(Number(e.target.value))}
+          className="rounded-md border border-slate-700 bg-slate-800 px-1.5 py-1 text-xs text-slate-200 focus:border-thermal-500/60 focus:outline-none"
+        >
+          {[25, 50, 100, 250].map((n) => (
+            <option key={n} value={n}>{n}</option>
+          ))}
+        </select>
+        <span className="tabular-nums">Showing {from}–{to} of {total}</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <button type="button" className={navBtn} onClick={() => onPage(current - 1)} disabled={current <= 1}>
+          <ChevronLeft className="h-3.5 w-3.5" /> Prev
+        </button>
+        {pages.map((p, idx) =>
+          p === 'gap' ? (
+            <span key={`gap-${idx}`} className="px-1 text-xs text-slate-600">…</span>
+          ) : (
+            <button
+              key={p}
+              type="button"
+              onClick={() => onPage(p)}
+              className={`min-w-[28px] rounded-md px-2 py-1 text-xs tabular-nums transition-colors ${
+                p === current
+                  ? 'bg-slate-700 text-slate-100 ring-1 ring-inset ring-slate-600'
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+              }`}
+            >
+              {p}
+            </button>
+          )
+        )}
+        <button type="button" className={navBtn} onClick={() => onPage(current + 1)} disabled={current >= totalPages}>
+          Next <ChevronRight className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// A single full-width spinner row shown inside <tbody> while a search/fetch is
+// in flight, so the table body itself reflects loading (header + footer stay put).
+const LoadingBodyRow = ({ colSpan }: { colSpan: number }) => (
+  <tr>
+    <td colSpan={colSpan} className="px-4 py-16 text-center text-xs text-slate-500">
+      <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin text-thermal-400" />
+      Loading…
+    </td>
+  </tr>
+);
+
 const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: 'Debtors', label: 'Debtors', icon: ArrowDownLeft },
   { key: 'Creditors', label: 'Creditors', icon: ArrowUpRight },
   { key: 'Bank', label: 'Bank', icon: Landmark },
   { key: 'Cash', label: 'Cash', icon: Wallet },
-  { key: 'Orders', label: 'Orders in Hand', icon: ClipboardList },
+  { key: 'SalesReg', label: 'Sales Register', icon: Receipt },
+  { key: 'PurchaseReg', label: 'Purchase Register', icon: Truck },
 ];
 
 // Clickable column header that toggles sort direction and shows an indicator.
@@ -141,9 +250,22 @@ const SortBtn = ({ label, active, dir, onClick }: { label: string; active: boole
   </button>
 );
 
+// Debounce a fast-changing value (e.g. the search box) so we only re-query the
+// API after typing pauses for `delay` ms — not on every keystroke.
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
+
 export default function TallyBooksPage() {
   const [tab, setTab] = useState<TabKey>('Debtors');
   const [search, setSearch] = useState('');
+  // Only the debounced value reaches the queries; the input stays instant-typed.
+  const debSearch = useDebouncedValue(search, 400);
   const [sortKey, setSortKey] = useState<'name' | 'amount'>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [showZero, setShowZero] = useState(false);
@@ -152,6 +274,15 @@ export default function TallyBooksPage() {
   const [txnMonth, setTxnMonth] = useState('');       // 'YYYY-MM' or ''
   const [txnFrom, setTxnFrom] = useState('');         // 'YYYY-MM-DD'
   const [txnTo, setTxnTo] = useState('');             // 'YYYY-MM-DD'
+
+  // Pagination — the content table and the transaction modal keep separate page
+  // state so paging one doesn't disturb the other.
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [txnPage, setTxnPage] = useState(1);
+  const [txnPageSize, setTxnPageSize] = useState(100);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const txnScrollRef = useRef<HTMLDivElement>(null);
 
   const { data: summary } = useQuery<SummaryResponse>({
     queryKey: ['tallyBooksSummary'],
@@ -198,38 +329,45 @@ export default function TallyBooksPage() {
   };
   const txnFilterActive = !!(txnMonth || txnFrom || txnTo);
 
+  // Sales / Purchase registers list realized vouchers from tally_vouchers. The
+  // `type` filter must match the stored voucherType: this company books its sales
+  // under "GST INVOICE1" (not "Sales"), purchases under "Purchase".
+  const isRegister = tab === 'SalesReg' || tab === 'PurchaseReg';
+  const regType = tab === 'SalesReg' ? 'GST INVOICE1' : 'Purchase';
+  const regLabel = tab === 'SalesReg' ? 'Sales' : 'Purchase';
+
   const { data, isLoading, refetch, isRefetching } = useQuery<BooksResponse>({
-    queryKey: ['tallyBooks', tab, search],
-    queryFn: async () => {
-      if (tab === 'Orders') {
-        const [so, po] = await Promise.all([
-          (await api.get('/tally/books', { params: { category: 'SalesOrder', search, limit: 500 } })).data as BooksResponse,
-          (await api.get('/tally/books', { params: { category: 'PurchaseOrder', search, limit: 500 } })).data as BooksResponse,
-        ]);
-        const merged = [...(so.data || []), ...(po.data || [])].sort((a, b) => b.amount - a.amount);
-        return {
-          success: true,
-          count: merged.length,
-          total: (so.total || 0) + (po.total || 0),
-          lastSynced: so.lastSynced || po.lastSynced || null,
-          data: merged,
-        } as BooksResponse;
-      }
-      return (await api.get('/tally/books', { params: { category: tab, search, limit: 500 } })).data;
-    },
+    queryKey: ['tallyBooks', tab, debSearch],
+    queryFn: async () =>
+      (await api.get('/tally/books', { params: { category: tab, search: debSearch, limit: 500 } })).data,
+    enabled: !isRegister,
+  });
+
+  // Register query — only active on the Sales/Purchase tabs. High limit so the
+  // whole register loads (backend caps totalAmount to the returned rows).
+  const {
+    data: vdata,
+    isLoading: vLoading,
+    isFetching: vFetching,
+    refetch: vRefetch,
+  } = useQuery<VouchersResponse>({
+    queryKey: ['tallyVouchers', regType, debSearch],
+    queryFn: async () =>
+      (await api.get('/tally/vouchers', {
+        params: { type: regType, ...(debSearch ? { party: debSearch } : {}), limit: 2000 },
+      })).data as VouchersResponse,
+    enabled: isRegister,
   });
 
   const records = data?.data ?? [];
-  const isOrders = tab === 'Orders';
   const isAccount = tab === 'Bank' || tab === 'Cash';
 
   // Hide nil-closing rows by default (matches Tally, which omits zero-balance
   // parties AND zero-balance bank/cash ledgers). The "Show nil-balance" toggle
-  // reveals them again. Orders in Hand always lists every open order.
+  // reveals them again.
   const visible = useMemo(() => {
-    if (isOrders) return records;
     return showZero ? records : records.filter((r) => Math.abs(r.amount) >= 0.5);
-  }, [records, showZero, isOrders]);
+  }, [records, showZero]);
 
   const toggleSort = (key: 'name' | 'amount') => {
     if (key === sortKey) {
@@ -258,6 +396,38 @@ export default function TallyBooksPage() {
 
   const lastSync = data?.lastSynced || summary?.lastSynced;
 
+  // Loading feedback for search: true while the debounce hasn't settled (typed
+  // text differs from the queried value) or the request is in flight.
+  const activeFetching = isRegister ? vFetching : isRefetching;
+  const searching = search !== debSearch || activeFetching;
+
+  // Reset to page 1 whenever the underlying rows change (tab, search, sort,
+  // nil-balance toggle) or the modal's account/date window changes.
+  useEffect(() => { setPage(1); }, [tab, debSearch, sortKey, sortDir, showZero]);
+  useEffect(() => { setTxnPage(1); }, [drillBank, txnFrom, txnTo]);
+
+  // Page the active content table. startIdx offsets row numbers + zebra striping
+  // so they stay continuous across pages. The Grand Total / footer still reflects
+  // the full result set, not just the visible page.
+  const changePage = (p: number) => {
+    setPage(p);
+    tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  const changePageSize = (n: number) => { setPageSize(n); setPage(1); };
+  const mainTotal = isRegister ? (vdata?.data?.length ?? 0) : sorted.length;
+  const startIdx = (page - 1) * pageSize;
+  const pagedSorted = sorted.slice(startIdx, startIdx + pageSize);
+  const pagedReg = (vdata?.data ?? []).slice(startIdx, startIdx + pageSize);
+
+  const changeTxnPage = (p: number) => {
+    setTxnPage(p);
+    txnScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const changeTxnPageSize = (n: number) => { setTxnPageSize(n); setTxnPage(1); };
+  const txnTotal = filteredTxns.length;
+  const txnStart = (txnPage - 1) * txnPageSize;
+  const pagedTxns = filteredTxns.slice(txnStart, txnStart + txnPageSize);
+
   const cards = [
     { key: 'Debtors', label: 'Total Debtors', stat: summary?.data.Debtors, icon: ArrowDownLeft, dot: 'bg-emerald-400', unit: 'parties' },
     { key: 'Creditors', label: 'Total Creditors', stat: summary?.data.Creditors, icon: ArrowUpRight, dot: 'bg-rose-400', unit: 'parties' },
@@ -274,11 +444,11 @@ export default function TallyBooksPage() {
           <p className="mt-1 text-xs text-slate-400">Party-wise balances and orders in hand, synced from Tally.</p>
         </div>
         <button
-          onClick={() => refetch()}
-          disabled={isRefetching}
+          onClick={() => (isRegister ? vRefetch() : refetch())}
+          disabled={isRegister ? vFetching : isRefetching}
           className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:border-slate-600 hover:text-slate-100 disabled:opacity-50"
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${isRefetching ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-3.5 w-3.5 ${(isRegister ? vFetching : isRefetching) ? 'animate-spin' : ''}`} />
           Refresh
         </button>
       </div>
@@ -326,7 +496,7 @@ export default function TallyBooksPage() {
           })}
         </div>
         <div className="flex items-center gap-4">
-          {!isOrders && (
+          {!isRegister && (
             <label className="inline-flex shrink-0 cursor-pointer select-none items-center gap-1.5 text-xs text-slate-400">
               <input
                 type="checkbox"
@@ -338,10 +508,14 @@ export default function TallyBooksPage() {
             </label>
           )}
           <div className="relative w-full sm:w-64">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-600" />
+            {searching ? (
+              <Loader2 className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 animate-spin text-thermal-400" />
+            ) : (
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-600" />
+            )}
             <input
               type="text"
-              placeholder={isOrders ? 'Search party or order no.' : 'Search party'}
+              placeholder="Search party"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full rounded-lg border border-slate-800 bg-slate-900/60 py-2 pl-9 pr-3 text-xs text-slate-200 placeholder:text-slate-600 focus:border-thermal-500/60 focus:outline-none focus:ring-1 focus:ring-thermal-500/40"
@@ -351,8 +525,57 @@ export default function TallyBooksPage() {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl bg-slate-900/40">
-        {isLoading ? (
+      <div ref={tableRef} className="scroll-smooth relative overflow-hidden rounded-xl bg-slate-900/40">
+        {isRegister ? (
+          vLoading ? (
+            <div className="px-4 py-16 text-center text-xs text-slate-500">Loading…</div>
+          ) : !(vdata?.data?.length) ? (
+            <div className="px-4 py-16 text-center">
+              <Receipt className="mx-auto h-6 w-6 text-slate-700" />
+              <p className="mt-3 text-xs text-slate-400">No {regLabel.toLowerCase()} vouchers synced yet.</p>
+              <p className="mx-auto mt-1 max-w-sm text-[11px] leading-relaxed text-slate-600">
+                Run the tally-connect agent while the company is open in Tally to sync vouchers.
+              </p>
+            </div>
+          ) : (
+            <div className="scroll-smooth min-h-[40vh] overflow-x-auto">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="bg-slate-900/60 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                    <th className="w-10 px-4 py-2.5 font-semibold">#</th>
+                    <th className="px-4 py-2.5 font-semibold">Date</th>
+                    <th className="px-4 py-2.5 font-semibold">Voucher No.</th>
+                    <th className="px-4 py-2.5 font-semibold">Party</th>
+                    <th className="px-4 py-2.5 text-right font-semibold">Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {searching ? (
+                    <LoadingBodyRow colSpan={5} />
+                  ) : (
+                    pagedReg.map((v, i) => (
+                      <tr key={v.id} className={`transition-colors ${(startIdx + i) % 2 ? 'bg-slate-800/40' : ''} hover:bg-slate-700/50`}>
+                        <td className="px-4 py-2 text-xs tabular-nums text-slate-500">{startIdx + i + 1}</td>
+                        <td className="px-4 py-2 whitespace-nowrap text-xs text-slate-400">{new Date(v.date).toLocaleDateString('en-IN')}</td>
+                        <td className="px-4 py-2 whitespace-nowrap text-xs text-slate-300">{v.voucherNumber || '—'}</td>
+                        <td className="px-4 py-2 text-xs text-slate-200">{v.partyName}</td>
+                        <td className="px-4 py-2 text-right whitespace-nowrap text-xs tabular-nums text-slate-200">{fmt(v.amount) || '0.00'}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+                {/* Grand total as a table footer row so each figure lines up under
+                    its own column. Plain (uncoloured) text to match the body. */}
+                <tfoot>
+                  <tr className="border-t border-slate-700 bg-slate-900/60 text-xs font-semibold text-slate-200">
+                    <td colSpan={4} className="px-4 py-2.5">{vdata.count} {regLabel} vouchers</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums">{fmt(vdata.totalAmount) || '0.00'}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )
+        ) : isLoading ? (
           <div className="px-4 py-16 text-center text-xs text-slate-500">Loading…</div>
         ) : records.length === 0 ? (
           <div className="px-4 py-16 text-center">
@@ -363,95 +586,76 @@ export default function TallyBooksPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="scroll-smooth min-h-[40vh] overflow-x-auto">
             <table className="w-full border-collapse text-left">
               <thead>
-                {isOrders ? (
-                  <tr className="bg-slate-900/60 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    <th className="w-10 px-4 py-2.5 font-semibold">#</th>
-                    <th className="px-4 py-2.5 font-semibold">Type</th>
-                    <th className="px-4 py-2.5 font-semibold">Order No.</th>
-                    <th className="px-4 py-2.5 font-semibold"><SortBtn label="Party" active={sortKey === 'name'} dir={sortDir} onClick={() => toggleSort('name')} /></th>
-                    <th className="px-4 py-2.5 font-semibold">Date</th>
-                    <th className="px-4 py-2.5 text-right font-semibold"><span className="flex justify-end"><SortBtn label="Value" active={sortKey === 'amount'} dir={sortDir} onClick={() => toggleSort('amount')} /></span></th>
-                  </tr>
-                ) : (
-                  <>
-                    <tr className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                      <th rowSpan={2} className="w-10 px-4 py-2.5 text-left align-bottom font-semibold">#</th>
-                      <th rowSpan={2} className="px-4 py-2.5 align-bottom font-semibold"><SortBtn label="Particulars" active={sortKey === 'name'} dir={sortDir} onClick={() => toggleSort('name')} /></th>
-                      <th colSpan={2} className="px-4 py-2 text-center font-semibold"><span className="flex justify-center"><SortBtn label="Closing Balance" active={sortKey === 'amount'} dir={sortDir} onClick={() => toggleSort('amount')} /></span></th>
-                    </tr>
-                    <tr className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                      <th className="px-4 py-2 text-right font-semibold">Debit</th>
-                      <th className="px-4 py-2 text-right font-semibold">Credit</th>
-                    </tr>
-                  </>
-                )}
+                <tr className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  <th rowSpan={2} className="w-10 px-4 py-2.5 text-left align-bottom font-semibold">#</th>
+                  <th rowSpan={2} className="px-4 py-2.5 align-bottom font-semibold"><SortBtn label="Particulars" active={sortKey === 'name'} dir={sortDir} onClick={() => toggleSort('name')} /></th>
+                  <th colSpan={2} className="px-4 py-2 text-center font-semibold"><span className="flex justify-center"><SortBtn label="Closing Balance" active={sortKey === 'amount'} dir={sortDir} onClick={() => toggleSort('amount')} /></span></th>
+                </tr>
+                <tr className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  <th className="px-4 py-2 text-right font-semibold">Debit</th>
+                  <th className="px-4 py-2 text-right font-semibold">Credit</th>
+                </tr>
               </thead>
               <tbody>
-                {sorted.map((r, i) => {
-                  if (isOrders) {
+                {searching ? (
+                  <LoadingBodyRow colSpan={4} />
+                ) : (
+                  pagedSorted.map((r, i) => {
+                    const c = split(r.category, r.amount);
                     return (
-                      <tr key={r.id} className={`transition-colors ${i % 2 ? 'bg-slate-800/40' : ''} hover:bg-slate-700/50`}>
-                        <td className="px-4 py-2 text-xs tabular-nums text-slate-500">{i + 1}</td>
-                        <td className="px-4 py-2">
-                          <span className={`inline-flex rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${r.category === 'SalesOrder' ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/20' : 'bg-sky-500/10 text-sky-300 ring-sky-500/20'}`}>
-                            {r.category === 'SalesOrder' ? 'Sales' : 'Purchase'}
-                          </span>
+                      <tr
+                        key={r.id}
+                        onClick={isAccount ? () => openDrill(r.name) : undefined}
+                        className={`transition-colors ${(startIdx + i) % 2 ? 'bg-slate-800/40' : ''} ${isAccount ? 'cursor-pointer hover:bg-thermal-500/10' : 'hover:bg-slate-700/50'}`}
+                      >
+                        <td className="px-4 py-2 text-xs tabular-nums text-slate-500">{startIdx + i + 1}</td>
+                        <td className="px-4 py-2 text-xs text-slate-200">
+                          {isAccount ? (
+                            <span className="inline-flex items-center gap-1.5">
+                              <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
+                              {r.name}
+                            </span>
+                          ) : r.name}
                         </td>
-                        <td className="px-4 py-2 text-xs text-slate-300">{r.ref || '—'}</td>
-                        <td className="px-4 py-2 text-xs text-slate-200">{r.name}</td>
-                        <td className="px-4 py-2 whitespace-nowrap text-xs text-slate-500">{r.date ? new Date(r.date).toLocaleDateString('en-IN') : '—'}</td>
-                        <td className="px-4 py-2 text-right text-xs tabular-nums text-slate-200">{inr(r.amount)}</td>
+                        <AmountCell value={c.dr} muted={!c.dr} />
+                        <AmountCell value={c.cr} muted={!c.cr} />
                       </tr>
                     );
-                  }
-                  const c = split(r.category, r.amount);
-                  return (
-                    <tr
-                      key={r.id}
-                      onClick={isAccount ? () => openDrill(r.name) : undefined}
-                      className={`transition-colors ${i % 2 ? 'bg-slate-800/40' : ''} ${isAccount ? 'cursor-pointer hover:bg-thermal-500/10' : 'hover:bg-slate-700/50'}`}
-                    >
-                      <td className="px-4 py-2 text-xs tabular-nums text-slate-500">{i + 1}</td>
-                      <td className="px-4 py-2 text-xs text-slate-200">
-                        {isAccount ? (
-                          <span className="inline-flex items-center gap-1.5">
-                            <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
-                            {r.name}
-                          </span>
-                        ) : r.name}
-                      </td>
-                      <AmountCell value={c.dr} muted={!c.dr} />
-                      <AmountCell value={c.cr} muted={!c.cr} />
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot>
-                {isOrders ? (
-                  <tr className="bg-slate-900/60 text-xs font-semibold text-slate-100">
-                    <td className="px-4 py-2.5" colSpan={5}>{records.length} orders</td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">{inr(data?.total ?? 0)}</td>
-                  </tr>
-                ) : (
-                  <tr className="bg-slate-900/60 text-xs font-semibold text-slate-100">
-                    <td className="px-4 py-2.5" colSpan={2}>Grand Total<span className="ml-1 font-normal text-slate-500">({visible.length})</span></td>
-                    <AmountCell value={totals.dr} />
-                    <AmountCell value={totals.cr} />
-                  </tr>
+                  })
                 )}
+              </tbody>
+              {/* Grand total as a table footer row so each figure lines up under its
+                  own column. Plain (uncoloured) text to match the body. */}
+              <tfoot>
+                <tr className="border-t border-slate-700 bg-slate-900/60 text-xs font-semibold text-slate-200">
+                  <td className="px-4 py-2.5"></td>
+                  <td className="px-4 py-2.5">Grand Total<span className="ml-1 font-normal text-slate-500">({visible.length})</span></td>
+                  <td className="px-4 py-2.5 text-right tabular-nums">{fmt(totals.dr) || '0.00'}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums">{fmt(totals.cr) || '0.00'}</td>
+                </tr>
               </tfoot>
             </table>
           </div>
         )}
 
+        {mainTotal > 0 && (
+          <PaginationBar
+            page={page}
+            pageSize={pageSize}
+            total={mainTotal}
+            onPage={changePage}
+            onPageSize={changePageSize}
+          />
+        )}
+
         {/* Status bar */}
         <div className="flex items-center justify-between border-t border-slate-800 bg-slate-900/60 px-4 py-2 text-[11px] text-slate-500">
-          <span>{isOrders ? 'Sales & purchase orders in hand' : isAccount ? 'Click an account to view its transactions' : 'Closing balances as per Tally'}</span>
+          <span>{isRegister ? `Realized ${regLabel.toLowerCase()} vouchers as per Tally` : isAccount ? 'Click an account to view its transactions' : 'Closing balances as per Tally'}</span>
           <span className="tabular-nums">
-            Last sync: {lastSync ? new Date(lastSync).toLocaleString('en-IN') : 'Never'}
+            Last sync: {(() => { const ls = isRegister ? vdata?.lastSynced : lastSync; return ls ? new Date(ls).toLocaleString('en-IN') : 'Never'; })()}
           </span>
         </div>
       </div>
@@ -492,7 +696,7 @@ export default function TallyBooksPage() {
                 <span className="ml-auto text-[11px] tabular-nums text-slate-500">Showing {filteredTxns.length} of {drill?.totalCount ?? 0}</span>
               </div>
             {drillFetching && <div className="h-0.5 w-full animate-pulse bg-thermal-500/70" />}
-            <div className="min-h-[220px] flex-1 overflow-auto">
+            <div ref={txnScrollRef} className="scroll-smooth min-h-[220px] flex-1 overflow-auto">
               {!drill && drillFetching ? (
                 <div className="px-4 py-16 text-center text-xs text-slate-500">Loading transactions…</div>
               ) : drill?.totalCount ? (
@@ -508,8 +712,8 @@ export default function TallyBooksPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredTxns.map((t, idx) => (
-                      <tr key={t.id} className={`border-t border-slate-800/70 ${idx % 2 ? 'bg-slate-800/30' : ''}`}>
+                    {pagedTxns.map((t, idx) => (
+                      <tr key={t.id} className={`border-t border-slate-800/70 ${(txnStart + idx) % 2 ? 'bg-slate-800/30' : ''}`}>
                         <td className="px-4 py-2 whitespace-nowrap text-xs text-slate-400">{new Date(t.date).toLocaleDateString('en-IN')}</td>
                         <td className="px-4 py-2 whitespace-nowrap text-xs text-slate-400">{t.voucherType}{t.voucherNumber ? ` #${t.voucherNumber}` : ''}</td>
                         <td className="px-4 py-2 text-xs text-slate-200">
@@ -538,6 +742,15 @@ export default function TallyBooksPage() {
                 <div className="px-4 py-16 text-center text-xs text-slate-500">No transactions found for this account.</div>
               )}
             </div>
+            {txnTotal > 0 && (
+              <PaginationBar
+                page={txnPage}
+                pageSize={txnPageSize}
+                total={txnTotal}
+                onPage={changeTxnPage}
+                onPageSize={changeTxnPageSize}
+              />
+            )}
           </div>
         </div>
       )}
