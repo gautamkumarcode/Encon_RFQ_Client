@@ -3,8 +3,10 @@
 import {
 	BarChart3,
 	Bell,
+	Building2,
 	Calculator,
 	CheckSquare,
+	ClipboardList,
 	Cpu,
 	FileSpreadsheet,
 	History,
@@ -39,6 +41,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
 			label: "RFQ & Offer Tracker",
 			path: "/rfq",
 			icon: FileSpreadsheet,
+			perm: null,
+		},
+		{
+			label: "Order in Hand",
+			path: "/order-in-hand",
+			icon: ClipboardList,
+			perm: null,
+		},
+		{
+			label: "Clients",
+			path: "/clients",
+			icon: Building2,
 			perm: null,
 		},
 		{
