@@ -21,6 +21,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 import { useAuth } from "../../context/AuthContext";
+import { ORDER_CLIENT_ROLES } from "../../utils/access";
 import { EnconLogo } from "../common/EnconLogo";
 
 interface SidebarProps {
@@ -48,12 +49,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 			path: "/order-in-hand",
 			icon: ClipboardList,
 			perm: null,
+			roles: ORDER_CLIENT_ROLES,
 		},
 		{
 			label: "Clients",
 			path: "/clients",
 			icon: Building2,
 			perm: null,
+			roles: ORDER_CLIENT_ROLES,
 		},
 		{
 			label: "Admin Review Portal",
@@ -127,6 +130,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 					{navItems.map((item) => {
 						if (item.reviewOnly && !canReview) return null;
 						if (item.adminOnly && userRole !== "ADMIN") return null;
+						if (
+							item.roles &&
+							!item.roles.map((r) => r.toUpperCase()).includes(userRole)
+						)
+							return null;
 						if (
 							item.perm &&
 							!hasPermission(item.perm, "READ") &&

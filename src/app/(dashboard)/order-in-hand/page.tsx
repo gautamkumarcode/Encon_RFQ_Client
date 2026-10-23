@@ -12,8 +12,18 @@ import ImportOrdersModal from '../../../components/order-in-hand/ImportOrdersMod
 import { useOrders, useClients, usePoEnquiries, useOrderMutations, fetchEnquiryPrefill, exportOrdersExcel } from '../../../components/order-in-hand/hooks';
 import { emptyForm, orderToForm, formToPayload, emptyAddress, normalizeName, emptyPayment } from '../../../components/order-in-hand/utils';
 import type { FormState, LineItem, Order, Payment } from '../../../components/order-in-hand/types';
+import RequireRole from '../../../components/auth/RequireRole';
+import { ORDER_CLIENT_ROLES } from '../../../utils/access';
 
 export default function OrderInHandPage() {
+  return (
+    <RequireRole roles={ORDER_CLIENT_ROLES}>
+      <OrderInHandContent />
+    </RequireRole>
+  );
+}
+
+function OrderInHandContent() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);

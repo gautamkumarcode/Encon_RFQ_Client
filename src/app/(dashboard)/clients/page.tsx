@@ -11,8 +11,18 @@ import PaginationBar from '../../../components/common/PaginationBar';
 import { useClients, useClientMutations } from '../../../components/clients/hooks';
 import { emptyClientForm, clientToForm, clientFormToPayload, emptyAddr } from '../../../components/clients/utils';
 import type { ClientAddr, ClientFormState, ClientRow } from '../../../components/clients/types';
+import RequireRole from '../../../components/auth/RequireRole';
+import { ORDER_CLIENT_ROLES } from '../../../utils/access';
 
 export default function ClientsPage() {
+  return (
+    <RequireRole roles={ORDER_CLIENT_ROLES}>
+      <ClientsContent />
+    </RequireRole>
+  );
+}
+
+function ClientsContent() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
