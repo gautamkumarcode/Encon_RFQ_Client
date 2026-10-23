@@ -32,7 +32,9 @@ export default function OrderDetailModal({ order, onClose, onEdit }: Props) {
   const lineTotal = (order.lineItems || []).reduce((s, li) => s + (Number(li.value) || 0), 0);
   const totalQty = (order.lineItems || []).reduce((s, li) => s + (Number(li.qty) || 0), 0);
   const totalReceived = order.totalReceived ?? (order.payments || []).reduce((s, p) => s + (Number(p.amount) || 0), 0);
-  const balance = (order.orderValue || 0) - totalReceived;
+  // Balance keys off the line-item total (kept in sync with orderValue on save),
+  // so it always matches the items shown even for records saved before the fix.
+  const balance = lineTotal - totalReceived;
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 sm:p-6">
