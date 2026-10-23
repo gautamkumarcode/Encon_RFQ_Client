@@ -15,6 +15,17 @@ export const ORDER_STATUS = [
 
 export const CURRENCIES = ['INR', 'USD', 'EUR', 'AED'];
 
+// Money-received entry types for the order payments ledger.
+export const PAYMENT_TYPES = [
+  'Advance',
+  'Milestone / Progress',
+  'On-GR Payment',
+  'Final / Balance',
+  'Misc Payment',
+  'Other Charges',
+  'Refund',
+];
+
 export const CURRENCY_SYMBOL: Record<string, string> = {
   INR: '₹',
   USD: '$',

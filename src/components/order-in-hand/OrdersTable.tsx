@@ -1,6 +1,6 @@
 'use client';
 
-import { Pencil, Trash2, ClipboardList } from 'lucide-react';
+import { Pencil, Trash2, ClipboardList, Eye } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import { fmt, sym } from './utils';
 import type { Order } from './types';
@@ -11,11 +11,12 @@ interface Props {
   paged: Order[];
   startIdx: number;
   totalCount: number;
+  onView: (o: Order) => void;
   onEdit: (o: Order) => void;
   onDelete: (o: Order) => void;
 }
 
-export default function OrdersTable({ isLoading, rows, paged, startIdx, totalCount, onEdit, onDelete }: Props) {
+export default function OrdersTable({ isLoading, rows, paged, startIdx, totalCount, onView, onEdit, onDelete }: Props) {
   return (
     <div className="scroll-smooth overflow-hidden rounded-xl bg-slate-900/40">
       {isLoading ? (
@@ -45,7 +46,11 @@ export default function OrdersTable({ isLoading, rows, paged, startIdx, totalCou
             </thead>
             <tbody>
               {paged.map((o, i) => (
-                <tr key={o.id} className={`transition-colors ${(startIdx + i) % 2 ? 'bg-slate-800/40' : ''} hover:bg-slate-700/50`}>
+                <tr
+                  key={o.id}
+                  onClick={() => onView(o)}
+                  className={`cursor-pointer transition-colors ${(startIdx + i) % 2 ? 'bg-slate-800/40' : ''} hover:bg-slate-700/50`}
+                >
                   <td className="px-3 py-2 text-xs tabular-nums text-slate-500">{startIdx + i + 1}</td>
                   <td className="px-3 py-2 text-xs text-slate-300">{o.jobNo || '—'}</td>
                   <td className="px-3 py-2 text-xs text-slate-200">{o.clientName}</td>
@@ -53,7 +58,9 @@ export default function OrdersTable({ isLoading, rows, paged, startIdx, totalCou
                   <td className="px-3 py-2 whitespace-nowrap text-xs text-slate-400">
                     {o.poDate ? new Date(o.poDate).toLocaleDateString('en-IN') : '—'}
                   </td>
-                  <td className="px-3 py-2 text-center text-xs tabular-nums text-slate-400">{o.lineItems?.length || 0}</td>
+                  <td className="px-3 py-2 text-center text-xs tabular-nums text-slate-400">
+                    {(o.lineItems || []).reduce((s, li) => s + (Number(li.qty) || 0), 0)}
+                  </td>
                   <td className="px-3 py-2 text-right whitespace-nowrap text-xs tabular-nums text-slate-200">
                     {sym(o.currency)}
                     {fmt(o.orderValue)}
@@ -68,14 +75,30 @@ export default function OrdersTable({ isLoading, rows, paged, startIdx, totalCou
                   <td className="px-3 py-2">
                     <div className="flex items-center justify-end gap-1">
                       <button
-                        onClick={() => onEdit(o)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onView(o);
+                        }}
+                        className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-700 hover:text-thermal-300"
+                        title="View details"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(o);
+                        }}
                         className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-700 hover:text-thermal-300"
                         title="Edit"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
                       <button
-                        onClick={() => onDelete(o)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(o);
+                        }}
                         className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-700 hover:text-rose-300"
                         title="Delete"
                       >

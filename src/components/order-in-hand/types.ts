@@ -9,6 +9,14 @@ export interface LineItem {
   value: number;
 }
 
+// A money-received entry against the order (in the order currency).
+export interface Payment {
+  type: string;
+  amount: number;
+  date: string;   // yyyy-mm-dd for the date input ('' when unset)
+  note: string;
+}
+
 export interface Order {
   id: string;
   client: string | null;
@@ -26,6 +34,8 @@ export interface Order {
   termsOfPayment: string;
   advanceAmount: number;
   advanceReceivedDate: string | null;
+  payments: Payment[];
+  totalReceived: number;
   dispatchAsPerPo: string | null;
   expectedDespatch: string | null;
   piNumber: string;
@@ -101,6 +111,33 @@ export interface EnqLite {
   itemDescription: string;
 }
 
+// Excel import: one parsed order preview (dry-run) + the commit result.
+export interface ImportPreviewOrder {
+  jobNo: string;
+  clientName: string;
+  poNumber: string;
+  orderValueINR: number;
+  itemCount: number;
+  duplicate: boolean;
+}
+
+export interface ImportPreviewResult {
+  success: boolean;
+  dryRun: true;
+  total: number;
+  orders: ImportPreviewOrder[];
+  message?: string;
+}
+
+export interface ImportCommitResult {
+  success: boolean;
+  dryRun: false;
+  total: number;
+  created: number;
+  skipped: number;
+  message?: string;
+}
+
 // Shape of the add/edit form state.
 export interface FormState {
   clientName: string;
@@ -120,6 +157,7 @@ export interface FormState {
   termsOfPayment: string;
   advanceAmount: string;
   advanceReceivedDate: string;
+  payments: Payment[];
   dispatchAsPerPo: string;
   expectedDespatch: string;
   piNumber: string;

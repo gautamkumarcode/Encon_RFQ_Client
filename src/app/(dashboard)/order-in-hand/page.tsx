@@ -7,9 +7,11 @@ import FilterBar from '../../../components/order-in-hand/FilterBar';
 import OrdersTable from '../../../components/order-in-hand/OrdersTable';
 import PaginationBar from '../../../components/common/PaginationBar';
 import OrderFormModal from '../../../components/order-in-hand/OrderFormModal';
-import { useOrders, useClients, usePoEnquiries, useOrderMutations, fetchEnquiryPrefill } from '../../../components/order-in-hand/hooks';
-import { emptyForm, orderToForm, formToPayload, emptyAddress, normalizeName } from '../../../components/order-in-hand/utils';
-import type { FormState, LineItem, Order } from '../../../components/order-in-hand/types';
+import OrderDetailModal from '../../../components/order-in-hand/OrderDetailModal';
+import ImportOrdersModal from '../../../components/order-in-hand/ImportOrdersModal';
+import { useOrders, useClients, usePoEnquiries, useOrderMutations, fetchEnquiryPrefill, exportOrdersExcel } from '../../../components/order-in-hand/hooks';
+import { emptyForm, orderToForm, formToPayload, emptyAddress, normalizeName, emptyPayment } from '../../../components/order-in-hand/utils';
+import type { FormState, LineItem, Order, Payment } from '../../../components/order-in-hand/types';
 
 export default function OrderInHandPage() {
   const [search, setSearch] = useState('');
@@ -21,6 +23,9 @@ export default function OrderInHandPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm());
+  const [importOpen, setImportOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [detail, setDetail] = useState<Order | null>(null);
 
   const { data, isLoading, isFetching, refetch } = useOrders(search, statusFilter);
   const { data: clientsData } = useClients();
@@ -73,6 +78,12 @@ export default function OrderInHandPage() {
     setModalOpen(true);
   }
 
+  // Open the edit form from the detail view (close the read-only modal first).
+  function editFromDetail(o: Order) {
+    setDetail(null);
+    openEdit(o);
+  }
+
   async function importEnquiry(enquiryId: string) {
     if (!enquiryId) return;
     const p = await fetchEnquiryPrefill(enquiryId);
@@ -113,6 +124,15 @@ export default function OrderInHandPage() {
   function removeLine(i: number) {
     setForm((f) => ({ ...f, lineItems: f.lineItems.filter((_, idx) => idx !== i) }));
   }
+  function setPay(i: number, patch: Partial<Payment>) {
+    setForm((f) => ({ ...f, payments: f.payments.map((p, idx) => (idx === i ? { ...p, ...patch } : p)) }));
+  }
+  function addPay() {
+    setForm((f) => ({ ...f, payments: [...f.payments, emptyPayment()] }));
+  }
+  function removePay(i: number) {
+    setForm((f) => ({ ...f, payments: f.payments.filter((_, idx) => idx !== i) }));
+  }
 
   function submit() {
     if (!form.clientName.trim()) return;
@@ -121,6 +141,17 @@ export default function OrderInHandPage() {
 
   function removeOrder(o: Order) {
     if (window.confirm(`Delete order ${o.poNumber || o.jobNo || o.clientName}?`)) deleteMutation.mutate(o.id);
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      await exportOrdersExcel(search, statusFilter);
+    } catch (err) {
+      window.alert('Export failed. Please try again.');
+    } finally {
+      setExporting(false);
+    }
   }
 
   const changePage = (p: number) => {
@@ -134,7 +165,7 @@ export default function OrderInHandPage() {
 
   return (
     <div className="" ref={tableRef}>
-      <PageHeader refreshing={isFetching} onRefresh={() => refetch()} onNew={openNew} />
+      <PageHeader refreshing={isFetching} exporting={exporting} onRefresh={() => refetch()} onExport={handleExport} onNew={openNew} onImport={() => setImportOpen(true)} />
       <SummaryChips count={data?.count ?? 0} totalINR={data?.totalINR || 0} openINR={data?.openINR || 0} />
       <FilterBar search={search} onSearch={setSearch} status={statusFilter} onStatus={setStatusFilter} />
       <OrdersTable
@@ -143,6 +174,7 @@ export default function OrderInHandPage() {
         paged={paged}
         startIdx={startIdx}
         totalCount={data?.count ?? 0}
+        onView={setDetail}
         onEdit={openEdit}
         onDelete={removeOrder}
       />
@@ -169,9 +201,21 @@ export default function OrderInHandPage() {
           onLineChange={setLine}
           onAddLine={addLine}
           onRemoveLine={removeLine}
+          onPayChange={setPay}
+          onAddPay={addPay}
+          onRemovePay={removePay}
           onSubmit={submit}
           onClose={close}
         />
+      )}
+      {importOpen && (
+        <ImportOrdersModal
+          onClose={() => setImportOpen(false)}
+          onImported={() => refetch()}
+        />
+      )}
+      {detail && (
+        <OrderDetailModal order={detail} onClose={() => setDetail(null)} onEdit={editFromDetail} />
       )}
     </div>
   );

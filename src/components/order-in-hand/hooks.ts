@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { api } from '../../services/api';
-import type { ClientsResponse, EnqLite, OrdersResponse, PrefillData } from './types';
+import type { ClientsResponse, EnqLite, ImportCommitResult, ImportPreviewResult, OrdersResponse, PrefillData } from './types';
 
 // Debounce a rapidly-changing value (used for the search box).
 export function useDebouncedValue<T>(value: T, delay: number): T {
@@ -64,6 +64,30 @@ export async function fetchEnquiryPrefill(enquiryId: string): Promise<PrefillDat
   return r.data.data;
 }
 
+// Download the order book as an Excel (.xlsx) file. Honors the active search/
+// status filters so the file matches the on-screen list. The backend sends the
+// workbook as a binary stream (responseType: 'blob'), which we hand to the
+// browser as a temporary object-URL download.
+export async function exportOrdersExcel(search: string, status: string): Promise<void> {
+  const r = await api.get('/orders/export', {
+    params: { ...(search ? { search } : {}), ...(status ? { status } : {}) },
+    responseType: 'blob',
+  });
+  const blob = new Blob([r.data], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  const url = window.URL.createObjectURL(blob);
+  const cd = String(r.headers?.['content-disposition'] ?? '');
+  const m = cd.match(/filename="?([^"]+)"?/);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = m?.[1] || `encon_orders_${new Date().toISOString().split('T')[0]}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 // Create + update + delete mutations, invalidating orders/clients on success.
 export function useOrderMutations(onSaved: () => void) {
   const queryClient = useQueryClient();
@@ -91,4 +115,24 @@ export function useOrderMutations(onSaved: () => void) {
   });
 
   return { saveMutation, deleteMutation };
+}
+
+// Excel import of previous orders. dryRun=true parses + previews (no writes);
+// dryRun=false commits and invalidates the orders/clients caches.
+export function useOrdersImport() {
+  const queryClient = useQueryClient();
+  return useMutation<ImportPreviewResult | ImportCommitResult, Error, { file: File; dryRun: boolean }>({
+    mutationFn: async ({ file, dryRun }) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      const r = await api.post(`/orders/import${dryRun ? '?dry=1' : ''}`, fd);
+      return r.data;
+    },
+    onSuccess: (data, vars) => {
+      if (!vars.dryRun && (data as ImportCommitResult).success) {
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
+        queryClient.invalidateQueries({ queryKey: ['clients'] });
+      }
+    },
+  });
 }

@@ -2,7 +2,7 @@
 // Formatting + form helpers for the Order in Hand feature.
 // ---------------------------------------------------------------------------
 import { CURRENCY_SYMBOL } from './constants';
-import type { Client, ClientAddressLite, FormState, Order } from './types';
+import type { Client, ClientAddressLite, FormState, Order, Payment } from './types';
 
 // Indian grouping, 2 decimals, no symbol (empty when zero).
 export const fmt = (v: number) =>
@@ -54,6 +54,11 @@ export const emptyAddress = (): ClientAddressLite => ({
   line1: '', line2: '', city: '', state: '', country: 'India', pincode: '',
 });
 
+// Blank payment-received row factory.
+export const emptyPayment = (): Payment => ({
+  type: 'Advance', amount: 0, date: '', note: '',
+});
+
 // Blank form factory.
 export const emptyForm = (): FormState => ({
   clientName: '',
@@ -73,6 +78,7 @@ export const emptyForm = (): FormState => ({
   termsOfPayment: '',
   advanceAmount: '',
   advanceReceivedDate: '',
+  payments: [emptyPayment()],
   dispatchAsPerPo: '',
   expectedDespatch: '',
   piNumber: '',
@@ -102,6 +108,9 @@ export const orderToForm = (o: Order): FormState => ({
   termsOfPayment: o.termsOfPayment,
   advanceAmount: o.advanceAmount ? String(o.advanceAmount) : '',
   advanceReceivedDate: toInputDate(o.advanceReceivedDate),
+  payments: o.payments?.length
+    ? o.payments.map((p) => ({ type: p.type || 'Advance', amount: p.amount || 0, date: toInputDate(p.date as any), note: p.note || '' }))
+    : [emptyPayment()],
   dispatchAsPerPo: toInputDate(o.dispatchAsPerPo),
   expectedDespatch: toInputDate(o.expectedDespatch),
   piNumber: o.piNumber,
@@ -131,6 +140,9 @@ export const formToPayload = (form: FormState) => ({
   termsOfPayment: form.termsOfPayment,
   advanceAmount: Number(form.advanceAmount) || 0,
   advanceReceivedDate: form.advanceReceivedDate || null,
+  payments: form.payments
+    .filter((p) => Number(p.amount) > 0 || p.note.trim())
+    .map((p) => ({ type: p.type, amount: Number(p.amount) || 0, date: p.date || null, note: p.note })),
   dispatchAsPerPo: form.dispatchAsPerPo || null,
   expectedDespatch: form.expectedDespatch || null,
   piNumber: form.piNumber,

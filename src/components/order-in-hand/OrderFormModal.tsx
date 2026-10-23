@@ -12,11 +12,13 @@ import {
   Download,
   CheckCircle2,
   AlertTriangle,
+  Banknote,
 } from 'lucide-react';
 import { INPUT_CLS, LABEL_CLS, ORDER_STATUS, CURRENCIES } from './constants';
 import LineItemsEditor from './LineItemsEditor';
+import PaymentsEditor from './PaymentsEditor';
 import { findClientMatches, fmt, sym } from './utils';
-import type { Client, EnqLite, FormState, LineItem } from './types';
+import type { Client, EnqLite, FormState, LineItem, Payment } from './types';
 
 interface Props {
   editingId: string | null;
@@ -31,6 +33,9 @@ interface Props {
   onLineChange: (i: number, patch: Partial<LineItem>) => void;
   onAddLine: () => void;
   onRemoveLine: (i: number) => void;
+  onPayChange: (i: number, patch: Partial<Payment>) => void;
+  onAddPay: () => void;
+  onRemovePay: (i: number) => void;
   onSubmit: () => void;
   onClose: () => void;
 }
@@ -84,6 +89,9 @@ export default function OrderFormModal({
   onLineChange,
   onAddLine,
   onRemoveLine,
+  onPayChange,
+  onAddPay,
+  onRemovePay,
   onSubmit,
   onClose,
 }: Props) {
@@ -311,6 +319,18 @@ export default function OrderFormModal({
                 <textarea rows={2} value={form.currentStatusNote} onChange={(e) => setField('currentStatusNote', e.target.value)} className={INPUT_CLS} />
               </Field>
             </div>
+          </Section>
+
+          {/* Payments received ledger */}
+          <Section icon={<Banknote className="h-4 w-4" />} title="Payments Received" hint="Advance, milestones, misc & other receipts">
+            <PaymentsEditor
+              payments={form.payments}
+              currency={form.currency}
+              orderValue={lineTotal}
+              onChange={onPayChange}
+              onAdd={onAddPay}
+              onRemove={onRemovePay}
+            />
           </Section>
         </div>
 
