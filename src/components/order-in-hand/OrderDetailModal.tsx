@@ -153,6 +153,10 @@ export default function OrderDetailModal({ order, onClose, onEdit }: Props) {
               <Field label="Advance Received" value={fmtDate(order.advanceReceivedDate)} />
               <Field label="PI No" value={order.piNumber} />
               <Field label="PI Date" value={fmtDate(order.piDate)} />
+              <Field
+                label="LD (Late Delivery)"
+                value={order.ldApplicable ? `Yes · ${order.ldPercentage || 0}%` : 'No'}
+              />
             </div>
           </Section>
 

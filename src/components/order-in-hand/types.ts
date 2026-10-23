@@ -36,6 +36,8 @@ export interface Order {
   advanceReceivedDate: string | null;
   payments: Payment[];
   totalReceived: number;
+  ldApplicable: boolean;
+  ldPercentage: number;
   dispatchAsPerPo: string | null;
   expectedDespatch: string | null;
   piNumber: string;
@@ -158,6 +160,8 @@ export interface FormState {
   advanceAmount: string;
   advanceReceivedDate: string;
   payments: Payment[];
+  ldApplicable: boolean;
+  ldPercentage: string;
   dispatchAsPerPo: string;
   expectedDespatch: string;
   piNumber: string;

@@ -79,6 +79,8 @@ export const emptyForm = (): FormState => ({
   advanceAmount: '',
   advanceReceivedDate: '',
   payments: [emptyPayment()],
+  ldApplicable: false,
+  ldPercentage: '',
   dispatchAsPerPo: '',
   expectedDespatch: '',
   piNumber: '',
@@ -111,6 +113,8 @@ export const orderToForm = (o: Order): FormState => ({
   payments: o.payments?.length
     ? o.payments.map((p) => ({ type: p.type || 'Advance', amount: p.amount || 0, date: toInputDate(p.date as any), note: p.note || '' }))
     : [emptyPayment()],
+  ldApplicable: !!o.ldApplicable,
+  ldPercentage: o.ldPercentage ? String(o.ldPercentage) : '',
   dispatchAsPerPo: toInputDate(o.dispatchAsPerPo),
   expectedDespatch: toInputDate(o.expectedDespatch),
   piNumber: o.piNumber,
@@ -143,6 +147,8 @@ export const formToPayload = (form: FormState) => ({
   payments: form.payments
     .filter((p) => Number(p.amount) > 0 || p.note.trim())
     .map((p) => ({ type: p.type, amount: Number(p.amount) || 0, date: p.date || null, note: p.note })),
+  ldApplicable: form.ldApplicable,
+  ldPercentage: form.ldApplicable ? Number(form.ldPercentage) || 0 : 0,
   dispatchAsPerPo: form.dispatchAsPerPo || null,
   expectedDespatch: form.expectedDespatch || null,
   piNumber: form.piNumber,

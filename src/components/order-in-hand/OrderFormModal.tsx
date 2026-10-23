@@ -294,6 +294,41 @@ export default function OrderFormModal({
               <Field label="Advance Received Date">
                 <input type="date" value={form.advanceReceivedDate} onChange={(e) => setField('advanceReceivedDate', e.target.value)} className={INPUT_CLS} />
               </Field>
+              <Field label="LD (Late Delivery) Applicable">
+                <div className="flex items-center gap-2">
+                  {([true, false] as const).map((val) => {
+                    const active = form.ldApplicable === val;
+                    return (
+                      <button
+                        key={String(val)}
+                        type="button"
+                        onClick={() => setField('ldApplicable', val)}
+                        className={`flex-1 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                          active
+                            ? 'border-thermal-500/60 bg-thermal-500/10 text-thermal-300'
+                            : 'border-slate-700 bg-slate-800 text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        {val ? 'Yes' : 'No'}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
+              {form.ldApplicable && (
+                <Field label="LD Percentage (%)">
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step="0.01"
+                    placeholder="0.00"
+                    value={form.ldPercentage}
+                    onChange={(e) => setField('ldPercentage', e.target.value)}
+                    className={INPUT_CLS}
+                  />
+                </Field>
+              )}
               <Field label="Dispatch as per PO">
                 <input type="date" value={form.dispatchAsPerPo} onChange={(e) => setField('dispatchAsPerPo', e.target.value)} className={INPUT_CLS} />
               </Field>
