@@ -7,6 +7,7 @@ import {
 	decodeHtmlEntities,
 	isEnconCompanyAddr,
 	parseEmailThreadMessages,
+	stripImapFraming,
 	ThreadMessage,
 } from "../../utils/emailParser";
 
@@ -40,9 +41,7 @@ export function GmailEmailViewer({
 	const cleanBody = (text: string): { srcDoc: string; plainText: string } => {
 		if (!text) return { srcDoc: "", plainText: "" };
 
-		let cleaned = text
-			.replace(/^\*\s+\d+\s+FETCH\s+\(BODY\.PEEK\[\]\s+\{\d+\}\r?\n/i, "")
-			.replace(/\)\s+A\d+\s+OK.*$/gi, "")
+		let cleaned = stripImapFraming(text)
 			.replace(/Content-Type:\s*text\/[a-z]+;?\s*charset="?[a-z0-9_-]+"?/gi, "")
 			.replace(/Content-Transfer-Encoding:\s*quoted-printable/gi, "")
 			.replace(/Content-Transfer-Encoding:\s*8bit/gi, "")

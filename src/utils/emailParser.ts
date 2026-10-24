@@ -7,6 +7,27 @@ export interface ThreadMessage {
 	isCompany: boolean;
 }
 
+/**
+ * Remove IMAP response framing from stored email text. Mirrors stripImapFraming in
+ * backend/src/services/inboxService.ts. Rows written by the old truncated fetch begin
+ * with a line like "* 183 FETCH (BODY[] {0" and may end with "A20 OK FETCH completed.";
+ * servers answer a BODY.PEEK[] command with the item named BODY[], so a pattern that
+ * requires "BODY.PEEK[]" never matches and the protocol text stays on screen.
+ */
+export function stripImapFraming(text: string): string {
+	if (!text) return "";
+	let out = text
+		// full framing: "* 183 FETCH (BODY[] {18345}" then the payload
+		.replace(/^\s*\*\s*\d+\s+FETCH\s*\([^{]*?\{\d+[+*]?\}[ \t]*\r?\n/i, "")
+		// trailing "...)" + "A20 OK FETCH completed."
+		.replace(/\)\s*A\d+\s+(?:OK|NO|BAD)\b[\s\S]*$/i, "");
+	// truncated fetch: the framing line arrived with no payload behind it
+	out = out
+		.replace(/^\s*\*\s*\d+\s+FETCH\b[^\r\n]*\r?\n?/i, "")
+		.replace(/^\s*A\d+\s+(?:OK|NO|BAD)\b[\s\S]*$/i, "");
+	return out.trim();
+}
+
 export function decodeHtmlEntities(str: string): string {
 	if (!str) return "";
 	return str
@@ -91,6 +112,11 @@ export function parseEmailThreadMessages(
 		)
 		.replace(/^--?=?[_a-zA-Z0-9.-]+.*$/gm, "")
 		.replace(/_NextPart_[a-zA-Z0-9._-]+(?:--)?/g, "")
+		// IMAP protocol framing left in rows stored by the old truncated-fetch bug, e.g.
+		// "* 183 FETCH (BODY[] {0" / "A20 OK FETCH completed." - never email content.
+		.replace(/^\s*\*\s*\d+\s+FETCH\b.*$/gim, "")
+		.replace(/^\s*\)\s*A\d+\s+(?:OK|NO|BAD)\b.*$/gim, "")
+		.replace(/^\s*A\d+\s+(?:OK|NO|BAD)\s+FETCH\b.*$/gim, "")
 		.replace(
 			/^\s*(?:Content-Type|Content-Transfer-Encoding|Content-Disposition|Content-ID|MIME-Version):\s*.*$/gim,
 			"",
