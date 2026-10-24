@@ -70,28 +70,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
 			path: "/users",
 			icon: Users,
 			perm: "USER_MGMT",
-			adminOnly: true,
 		},
 		{
 			label: "Role & Permissions",
 			path: "/roles",
 			icon: ShieldAlert,
-			perm: null,
-			adminOnly: true,
+			perm: "ROLE_MGMT",
 		},
 		{
 			label: "Employee Analytics",
 			path: "/analytics",
 			icon: BarChart3,
 			perm: "ANALYTICS",
-			adminOnly: true,
 		},
 		{
 			label: "Audit Activity Logs",
 			path: "/activity",
 			icon: History,
 			perm: "ACTIVITY_LOGS",
-			adminOnly: true,
 		},
 		{ label: "Notifications", path: "/notifications", icon: Bell, perm: null },
 		{
@@ -99,14 +95,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 			path: "/tally",
 			icon: Calculator,
 			perm: "TALLY",
-			adminOnly: true,
 		},
 		{
 			label: "Tally Books",
 			path: "/tally-books",
 			icon: Landmark,
 			perm: "TALLY",
-			adminOnly: true,
 		},
 		{
 			label: "Future Extensions",
@@ -135,12 +129,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 							!item.roles.map((r) => r.toUpperCase()).includes(userRole)
 						)
 							return null;
-						if (
-							item.perm &&
-							!hasPermission(item.perm, "READ") &&
-							userRole !== "ADMIN"
-						)
-							return null;
+						// Capability comes from the same matrix the API enforces. ADMIN
+						// bypasses inside hasPermission, so no separate role check is needed.
+						if (item.perm && !hasPermission(item.perm, "READ")) return null;
 
 						const isActive = pathname === item.path;
 						const Icon = item.icon;

@@ -19,7 +19,17 @@ import {
   Mail,
 } from 'lucide-react';
 
+import RequirePermission from '../../../components/auth/RequirePermission';
+
 export default function UserManagementPage() {
+  return (
+    <RequirePermission module="USER_MGMT" action="READ">
+      <UserManagementContent />
+    </RequirePermission>
+  );
+}
+
+function UserManagementContent() {
   const queryClient = useQueryClient();
   const { showToast } = useNotification();
 

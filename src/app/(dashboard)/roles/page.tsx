@@ -17,19 +17,59 @@ import {
   Lock,
 } from 'lucide-react';
 
-const MODULE_CONFIG: Record<string, { label: string; desc: string; category?: string }> = {
-  USER_MGMT: { label: 'User Management', desc: 'Manage user accounts, status, and role assignments', category: 'SYSTEM' },
-  ROLE_MGMT: { label: 'Role & Permission Matrix', desc: 'Configure custom roles and manage RBAC matrices', category: 'SYSTEM' },
+/**
+ * One entry per capability module the backend catalogue (backend/src/config/capabilities.ts)
+ * knows about, so an admin reads plain English instead of a raw module code. Keep the two
+ * lists in step: a module missing here still renders, but under a generated "XYZ Module" label.
+ */
+const MODULE_CONFIG: Record<string, { label: string; desc: string; category: string; legacy?: boolean }> = {
+  USER_MGMT: { label: 'User Management', desc: 'Create users, change role assignment, enable or disable accounts', category: 'SYSTEM' },
+  ROLE_MGMT: { label: 'Role & Permission Matrix', desc: 'Edit which capabilities each role holds; create or delete custom roles', category: 'SYSTEM' },
   APP_MGMT: { label: 'Application Access', desc: 'Grant or revoke single sign-on access to connected apps', category: 'SYSTEM' },
-  DASHBOARD: { label: 'Executive Dashboard', desc: 'View high-level KPIs and operational metrics', category: 'SYSTEM' },
-  ANALYTICS: { label: 'Analytics & Reporting', desc: 'View technical, commercial, and performance analytics', category: 'SYSTEM' },
+  DASHBOARD: { label: 'Executive Dashboard', desc: 'View the landing dashboard and its KPI summary', category: 'SYSTEM' },
+  ANALYTICS: { label: 'Employee Analytics', desc: 'View technical, commercial and performance analytics for all staff', category: 'SYSTEM' },
   ACTIVITY_LOGS: { label: 'Audit Activity Logs', desc: 'Inspect system activity trails and security logs', category: 'SYSTEM' },
-  NOTIFICATIONS: { label: 'Notifications Center', desc: 'Manage automated email broadcasts and system notifications', category: 'SYSTEM' },
-  RFQ_MGMT: { label: 'RFQ - General Management', desc: 'Create, view, assign, and manage RFQ tracker entries', category: 'RFQ' },
-  RFQ_COSTING: { label: 'RFQ - Costing Tools', desc: 'Access and compute costing sheets (Tundish Dryer, VLPH, Ladle Dryer, etc.)', category: 'RFQ' },
-  RFQ_REVIEW: { label: 'RFQ - Review & Verification', desc: 'Perform technical/commercial review and verification stage checks', category: 'RFQ' },
-  RFQ_APPROVAL: { label: 'RFQ - Manager Approval', desc: 'Grant final managerial sign-off and approval on RFQs', category: 'RFQ' },
-  RFQ_OFFERS: { label: 'RFQ - Offer Generator', desc: 'Generate official PDF proposal offers and sync with Offer Generator', category: 'RFQ' },
+  NOTIFICATIONS: { label: 'Notifications Center', desc: 'Send and receive system-wide announcement notifications', category: 'SYSTEM' },
+
+  RFQ_LIST: { label: 'RFQ Tracker - Open & View Own', desc: 'See the tracker: own and assigned enquiries, plus anything under review', category: 'RFQ' },
+  RFQ_VIEW_ALL: { label: 'RFQ Tracker - View Every Record', desc: 'See all enquiries in the system, not only the ones assigned to you', category: 'RFQ' },
+  RFQ_ENTRY: { label: 'RFQ Entry - Create & Edit', desc: 'Create an enquiry and edit its core fields (item, description, quantity, notes)', category: 'RFQ' },
+  RFQ_CLIENT_DETAILS: { label: 'RFQ Entry - Update Client Details', desc: 'Change client name, contact person, mobile, email and address on an enquiry', category: 'RFQ' },
+  RFQ_SOURCE_DOC: { label: 'RFQ Entry - Mail Source & Raw Content', desc: 'View and edit the captured enquiry mail, sender details and raw content', category: 'RFQ' },
+  RFQ_ASSIGNMENT: { label: 'RFQ - Change Assignment', desc: 'Re-assign the sales and technical owners of an enquiry', category: 'RFQ' },
+  RFQ_STATUS: { label: 'RFQ - Change Status', desc: 'Move an enquiry between Open, In Progress, Under Review, Closed and Regret', category: 'RFQ' },
+  RFQ_FOLLOWUP: { label: 'RFQ - Follow-up Log', desc: 'Add follow-up entries. Deleting them is a separate right below', category: 'RFQ' },
+  RFQ_FOLLOWUP_ADMIN: { label: 'RFQ - Delete Anyone\u2019s Follow-ups', desc: 'Remove follow-up entries recorded by other users', category: 'RFQ' },
+  RFQ_CLIENT_FOLLOWUP: { label: 'RFQ - Send Client Follow-up Mail', desc: 'Send a follow-up email directly to the client from the enquiry', category: 'RFQ' },
+  RFQ_ENTRY_DELETE: { label: 'RFQ - Delete Enquiry', desc: 'Delete a single enquiry record', category: 'RFQ' },
+  RFQ_BULK_DELETE: { label: 'RFQ - Bulk Delete', desc: 'Delete many enquiries at once from the tracker', category: 'RFQ' },
+  RFQ_ATTACHMENT: { label: 'RFQ - Attachments', desc: 'Upload documents against an enquiry. Deleting uploads is separate', category: 'RFQ' },
+  RFQ_ATTACHMENT_DELETE: { label: 'RFQ - Delete Attachments', desc: 'Remove attachments uploaded by any user', category: 'RFQ' },
+  RFQ_DRIVE: { label: 'RFQ - Google Drive Folder', desc: 'Open and sync the Drive folder created for an enquiry', category: 'RFQ' },
+  RFQ_IMPORT: { label: 'RFQ - Import from Excel', desc: 'Bulk-create enquiries by uploading a spreadsheet', category: 'RFQ' },
+  RFQ_INBOX_SYNC: { label: 'RFQ - Sync Enquiry Inbox', desc: 'Pull new enquiries from the shared mailbox and view sync status', category: 'RFQ' },
+  RFQ_OFFER_MAPPING: { label: 'RFQ - Auto-map Offer Documents', desc: 'Attach generated offer PDFs to enquiries automatically', category: 'RFQ' },
+  RFQ_DIRECTORY: { label: 'RFQ - Client Directory', desc: 'Look up and save client details in the shared directory', category: 'RFQ' },
+  RFQ_COSTING: { label: 'RFQ - Costing Sheets', desc: 'Open costing tools (Tundish Dryer, VLPH, Ladle Dryer) and edit rate inputs', category: 'RFQ' },
+  RFQ_REVIEW: { label: 'RFQ - Review & Verification', desc: 'Send an enquiry for review and complete the verification stage checks', category: 'RFQ' },
+  RFQ_APPROVAL: { label: 'RFQ - Manager Approval', desc: 'Grant the final managerial sign-off on an enquiry', category: 'RFQ' },
+  RFQ_OFFERS: { label: 'RFQ - Offer Generator', desc: 'Generate the official PDF proposal and sync with the Offer Generator', category: 'RFQ' },
+  RFQ_MGMT: { label: 'RFQ - General Management (legacy umbrella)', desc: 'Old blanket grant, kept only while unmigrated checks read it. Superseded by the sub-capabilities above - do not grant new roles through this row', category: 'RFQ', legacy: true },
+
+  ORDER_MGMT: { label: 'Order in Hand', desc: 'View the order register. WRITE creates and edits orders plus Excel import/export; DELETE removes orders', category: 'ORDERS' },
+  ORDER_PAYMENT: { label: 'Order Payments Ledger', desc: 'Record and amend payments received, misc payments and other charges against an order', category: 'ORDERS' },
+  CLIENT_MGMT: { label: 'Client Master', desc: 'View the client directory. WRITE adds or edits client records and addresses', category: 'ORDERS' },
+
+  TALLY: { label: 'Tally ERP Data & Books', desc: 'Read vouchers, ledgers, debtors/creditors, bank transactions and the sales/purchase registers synced from Tally', category: 'TALLY' },
+};
+
+/** Sections on the matrix, in display order. Unknown categories fall to the end. */
+const CATEGORY_ORDER = ['SYSTEM', 'RFQ', 'ORDERS', 'TALLY'];
+const CATEGORY_TITLES: Record<string, string> = {
+  SYSTEM: 'System Administration',
+  RFQ: 'RFQ Tracker & Lifecycle',
+  ORDERS: 'Orders & Clients',
+  TALLY: 'Tally Integration',
 };
 
 export default function RoleManagementPage() {
@@ -157,8 +197,15 @@ export default function RoleManagementPage() {
     }
   };
 
-  // Group permissions by module
+  // Group permissions by module, then by section, so ~50 capability rows stay scannable
   const modulesList = Array.from(new Set(permissions.map((p) => p.module)));
+  const categoryOf = (mod: string) => MODULE_CONFIG[mod]?.category ?? 'OTHER';
+  const sections = [
+    ...CATEGORY_ORDER,
+    ...Array.from(new Set(modulesList.map(categoryOf))).filter((c) => !CATEGORY_ORDER.includes(c)),
+  ]
+    .map((cat) => ({ cat, mods: modulesList.filter((m) => categoryOf(m) === cat) }))
+    .filter((group) => group.mods.length > 0);
 
   return (
     <div className="space-y-4">
@@ -269,11 +316,20 @@ export default function RoleManagementPage() {
             )}
           </div>
 
-          <div className="space-y-4">
-            {modulesList.map((mod) => {
+          <div className="space-y-5">
+            {sections.map((section) => (
+              <div key={section.cat} className="space-y-3">
+                <div className="flex items-center gap-2 pb-1 border-b border-slate-800">
+                  <h3 className="text-[11px] font-bold text-white uppercase tracking-widest">
+                    {CATEGORY_TITLES[section.cat] ?? section.cat}
+                  </h3>
+                  <span className="text-[10px] text-slate-500 font-mono">{section.mods.length} modules</span>
+                </div>
+                <div className="space-y-4">
+            {section.mods.map((mod) => {
               const modPerms = permissions.filter((p) => p.module === mod);
               const allModSelected = modPerms.every((p) => selectedPermIds.includes(p.id)) || activeRole.name === 'ADMIN';
-              const cfg = MODULE_CONFIG[mod] || { label: `${mod} Module`, desc: 'Manage module access permissions', category: 'SYSTEM' };
+              const cfg = MODULE_CONFIG[mod] || { label: `${mod} Module`, desc: 'Raw capability module - add a readable label in MODULE_CONFIG', category: section.cat };
 
               return (
                 <div key={mod} className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
@@ -283,11 +339,17 @@ export default function RoleManagementPage() {
                         <h3 className="text-xs font-bold text-thermal-400 uppercase tracking-wider">
                           {cfg.label}
                         </h3>
-                        {cfg.category === 'RFQ' && (
+                        {cfg.category === 'RFQ' && !cfg.legacy && (
                           <span className="px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-[9px] font-extrabold text-emerald-400 rounded-md">
                             RFQ Sub-Module
                           </span>
                         )}
+                        {cfg.legacy && (
+                          <span className="px-1.5 py-0.5 bg-amber-500/10 border border-amber-500/30 text-[9px] font-extrabold text-amber-400 rounded-md">
+                            LEGACY - DO NOT GRANT
+                          </span>
+                        )}
+                        <span className="text-[9px] font-mono text-slate-600">{mod}</span>
                       </div>
                       <p className="text-[10px] text-slate-400 mt-0.5">{cfg.desc}</p>
                     </div>
@@ -336,6 +398,9 @@ export default function RoleManagementPage() {
                 </div>
               );
             })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

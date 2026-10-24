@@ -6,7 +6,17 @@ import { api } from '../../../services/api';
 import { ActivityLog } from '../../../types';
 import { History, Search, Shield, Filter, Terminal } from 'lucide-react';
 
+import RequirePermission from '../../../components/auth/RequirePermission';
+
 export default function ActivityLogsPage() {
+  return (
+    <RequirePermission module="ACTIVITY_LOGS" action="READ">
+      <ActivityLogsContent />
+    </RequirePermission>
+  );
+}
+
+function ActivityLogsContent() {
   const [actionFilter, setActionFilter] = useState('');
   const [emailQuery, setEmailQuery] = useState('');
 

@@ -74,10 +74,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode; initialUser?: U
 
   const hasPermission = (module: string, action: string): boolean => {
     if (!user) return false;
-    if (['ADMIN', 'CO', 'GM', 'PRODUCTION_HEAD'].includes((user.role || '').toUpperCase())) return true;
+    // Mirror the backend requirePermission middleware exactly: ADMIN alone bypasses
+    // the matrix. CO/GM/PRODUCTION_HEAD used to bypass here too, so the UI offered
+    // actions the API then rejected with a 403 — and their matrix was unenforceable.
+    if ((user.role || '').toUpperCase() === 'ADMIN') return true;
+    const perms = user.permissions || [];
     const permString = `${module}:${action}`;
     const manageString = `${module}:MANAGE`;
-    return user.permissions?.includes(permString) || user.permissions?.includes(manageString) || false;
+    return perms.includes(permString) || perms.includes(manageString);
   };
 
   const hasRole = (roles: string[]): boolean => {
