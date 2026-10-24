@@ -3,8 +3,10 @@
 import {
 	BarChart3,
 	Bell,
+	Briefcase,
 	Building2,
 	Calculator,
+	CalendarClock,
 	CheckSquare,
 	ClipboardList,
 	Cpu,
@@ -70,6 +72,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
 			path: "/users",
 			icon: Users,
 			perm: "USER_MGMT",
+		},
+		{
+			label: "Employees",
+			path: "/employees",
+			icon: Briefcase,
+			perm: "HR_EMPLOYEES",
+		},
+		{
+			label: "Offices",
+			path: "/offices",
+			icon: Building2,
+			perm: "HR_OFFICES",
+		},
+		{
+			label: "Attendance",
+			path: "/attendance",
+			icon: CalendarClock,
+			perm: "HR_ATTENDANCE",
 		},
 		{
 			label: "Role & Permissions",
