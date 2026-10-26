@@ -77,7 +77,7 @@ export default function OrderDetailModal({ order, onClose, onEdit }: Props) {
           </div>
 
           {order.currentStatusNote && (
-            <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-300">
+            <div className="rounded-md border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-300">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Status note: </span>
               {order.currentStatusNote}
             </div>
@@ -85,7 +85,7 @@ export default function OrderDetailModal({ order, onClose, onEdit }: Props) {
 
           {/* Order details grid */}
           <Section title="Order Details">
-            <div className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-lg border border-slate-800 bg-slate-900/60 p-4 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-md border border-slate-800 bg-slate-900/60 p-4 sm:grid-cols-3">
               <Field label="Party" value={order.clientName} />
               <Field label="Job No" value={order.jobNo} />
               <Field label="RFQ No" value={order.rfqId} />
@@ -101,7 +101,7 @@ export default function OrderDetailModal({ order, onClose, onEdit }: Props) {
           {/* Line items */}
           <Section title={`Items (${(order.lineItems || []).length} line${(order.lineItems || []).length === 1 ? '' : 's'} · Qty ${totalQty})`}>
             {order.lineItems?.length ? (
-              <div className="overflow-x-auto rounded-lg border border-slate-800">
+              <div className="overflow-x-auto rounded-md border border-slate-800">
                 <table className="w-full border-collapse text-left">
                   <thead>
                     <tr className="bg-slate-800/40 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
@@ -144,7 +144,7 @@ export default function OrderDetailModal({ order, onClose, onEdit }: Props) {
 
           {/* Commercials */}
           <Section title="Commercials & Payment">
-            <div className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-lg border border-slate-800 bg-slate-900/60 p-4 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3 rounded-md border border-slate-800 bg-slate-900/60 p-4 sm:grid-cols-3">
               <Field label="Terms of Payment" value={order.termsOfPayment} />
               <Field
                 label="Advance Amount"
@@ -163,7 +163,7 @@ export default function OrderDetailModal({ order, onClose, onEdit }: Props) {
           {/* Payments received */}
           <Section title="Payments Received">
             {order.payments?.length ? (
-              <div className="overflow-x-auto rounded-lg border border-slate-800">
+              <div className="overflow-x-auto rounded-md border border-slate-800">
                 <table className="w-full border-collapse text-left">
                   <thead>
                     <tr className="bg-slate-800/40 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
@@ -216,13 +216,13 @@ export default function OrderDetailModal({ order, onClose, onEdit }: Props) {
         <div className="flex items-center justify-end gap-2 border-t border-slate-800 bg-slate-900/80 px-5 py-3">
           <button
             onClick={onClose}
-            className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-medium text-slate-300 transition-colors hover:border-slate-600 hover:text-slate-100"
+            className="rounded-md border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-medium text-slate-300 transition-colors hover:border-slate-600 hover:text-slate-100"
           >
             Close
           </button>
           <button
             onClick={() => onEdit(order)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-thermal-500 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-thermal-400"
+            className="inline-flex items-center gap-1.5 rounded-md bg-thermal-500 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-thermal-400"
           >
             <Pencil className="h-3.5 w-3.5" /> Edit Order
           </button>

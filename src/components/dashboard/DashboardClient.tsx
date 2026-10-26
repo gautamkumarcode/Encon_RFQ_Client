@@ -61,13 +61,13 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
 
   if ((isError && !data) || !data) {
     return (
-      <div className="p-8 text-center glass-card rounded-2xl border-rose-500/30 space-y-3">
+      <div className="p-8 text-center glass-card rounded-xl border-rose-500/30 space-y-3">
         <ShieldAlert className="w-10 h-10 text-rose-400 mx-auto" />
         <p className="text-rose-400 font-semibold text-sm">Failed to load dashboard metrics.</p>
         <p className="text-xs text-slate-400">Ensure backend API server is running.</p>
         <button
           onClick={() => refetch()}
-          className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-white font-bold"
+          className="px-4 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-xs text-white font-bold"
         >
           Retry Load
         </button>
@@ -84,7 +84,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
   return (
     <div className="space-y-4">
       {/* ROLE-BASED WELCOME HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-4 rounded-2xl border border-slate-800 bg-gradient-to-r from-obsidian-900 via-slate-900 to-obsidian-950">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-4 rounded-xl border border-slate-800 bg-gradient-to-r from-obsidian-900 via-slate-900 to-obsidian-950">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-white tracking-wide">
@@ -96,7 +96,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         <div className="flex items-center gap-3">
           <Link
             href="/rfq?tab=all"
-            className="px-3.5 py-2 rounded-xl bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-thermal-500/50 text-right transition-all cursor-pointer group"
+            className="px-3.5 py-2 rounded-md bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-thermal-500/50 text-right transition-all cursor-pointer group"
           >
             <span className="text-[10px] text-slate-400 block font-semibold group-hover:text-slate-300">
               {isFullAccessRole ? 'Total RFQ Database' : 'My Assigned RFQs'}
@@ -119,7 +119,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         {/* 1. Total RFQs */}
         <Link
           href="/rfq?tab=all"
-          className="glass-card glass-card-hover p-4 rounded-2xl border border-slate-800 hover:border-cyan-500/50 relative overflow-hidden transition-all duration-200 cursor-pointer group block"
+          className="glass-card glass-card-hover p-4 rounded-xl border border-slate-800 hover:border-cyan-500/50 relative overflow-hidden transition-all duration-200 cursor-pointer group block"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-400 group-hover:text-slate-200 uppercase tracking-wider transition-colors">
@@ -143,7 +143,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         {/* 2. Total Live */}
         <Link
           href="/rfq?tab=all"
-          className="glass-card glass-card-hover p-4 rounded-2xl border border-slate-800 hover:border-thermal-500/50 relative overflow-hidden transition-all duration-200 cursor-pointer group block"
+          className="glass-card glass-card-hover p-4 rounded-xl border border-slate-800 hover:border-thermal-500/50 relative overflow-hidden transition-all duration-200 cursor-pointer group block"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-400 group-hover:text-slate-200 uppercase tracking-wider transition-colors">
@@ -167,7 +167,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         {/* 3. Under Review */}
         <Link
           href="/rfq?tab=review"
-          className="glass-card glass-card-hover p-4 rounded-2xl border border-slate-800 hover:border-amber-500/50 relative overflow-hidden transition-all duration-200 cursor-pointer group block"
+          className="glass-card glass-card-hover p-4 rounded-xl border border-slate-800 hover:border-amber-500/50 relative overflow-hidden transition-all duration-200 cursor-pointer group block"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-400 group-hover:text-slate-200 uppercase tracking-wider transition-colors">
@@ -191,7 +191,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         {/* 4. Approved Costing */}
         <Link
           href="/rfq?tab=approved"
-          className="glass-card glass-card-hover p-4 rounded-2xl border border-slate-800 hover:border-emerald-500/50 relative overflow-hidden transition-all duration-200 cursor-pointer group block"
+          className="glass-card glass-card-hover p-4 rounded-xl border border-slate-800 hover:border-emerald-500/50 relative overflow-hidden transition-all duration-200 cursor-pointer group block"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-400 group-hover:text-slate-200 uppercase tracking-wider transition-colors">
@@ -215,7 +215,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         {/* 5. Offers Sent */}
         <Link
           href="/rfq?tab=offersent"
-          className="glass-card glass-card-hover p-4 rounded-2xl border border-slate-800 hover:border-indigo-500/50 relative overflow-hidden transition-all duration-200 cursor-pointer group block"
+          className="glass-card glass-card-hover p-4 rounded-xl border border-slate-800 hover:border-indigo-500/50 relative overflow-hidden transition-all duration-200 cursor-pointer group block"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-400 group-hover:text-slate-200 uppercase tracking-wider transition-colors">
@@ -240,13 +240,13 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
       {/* MAIN CHARTS & LEADERBOARD SECTION */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Area Chart: Monthly Live Trends */}
-        <div className="lg:col-span-2 glass-card p-4 rounded-2xl border border-slate-800 flex flex-col justify-between">
+        <div className="lg:col-span-2 glass-card p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-bold text-sm text-white">Engineering RFQ Pipeline Trends</h3>
               <p className="text-xs text-slate-400">Live Database RFQs vs Offers Generated</p>
             </div>
-            <span className="text-xs text-thermal-400 font-semibold bg-thermal-500/10 px-2.5 py-1 rounded-lg border border-thermal-500/20">
+            <span className="text-xs text-thermal-400 font-semibold bg-thermal-500/10 px-2.5 py-1 rounded-md border border-thermal-500/20">
               Live Database
             </span>
           </div>
@@ -279,7 +279,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         </div>
 
         {/* Real Assignees / Employee Performance */}
-        <div className="glass-card p-4 rounded-2xl border border-slate-800 flex flex-col justify-between">
+        <div className="glass-card p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-bold text-sm text-white flex items-center gap-1.5">
@@ -319,12 +319,12 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
 
       {/* FOLLOW-UP DUE ALERT PANEL */}
       {followupCount > 0 && (
-        <div className="glass-card p-4 rounded-2xl border border-rose-500/40 bg-rose-500/5">
+        <div className="glass-card p-4 rounded-xl border border-rose-500/40 bg-rose-500/5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-sm text-white flex items-center gap-2">
               <Bell className="w-4 h-4 text-rose-400 animate-pulse" />
               Follow-up Required
-              <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500 text-white">
+              <span className="ml-1 px-2 py-0.5 rounded text-[10px] font-extrabold bg-rose-500 text-white">
                 {followupCount}
               </span>
             </h3>
@@ -384,7 +384,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
       {/* RECENT RFQS & OFFERS DUAL TABLE */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Live Recent RFQs */}
-        <div className="glass-card p-4 rounded-2xl border border-slate-800">
+        <div className="glass-card p-4 rounded-xl border border-slate-800">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-sm text-white flex items-center gap-2">
               <FileText className="w-4 h-4 text-thermal-500" /> Recent Enquiries
@@ -424,7 +424,7 @@ export default function DashboardClient({ initialData }: DashboardClientProps) {
         </div>
 
         {/* Live Recent Offers */}
-        <div className="glass-card p-4 rounded-2xl border border-slate-800">
+        <div className="glass-card p-4 rounded-xl border border-slate-800">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-sm text-white flex items-center gap-2">
               <Calculator className="w-4 h-4 text-indigo-400" /> Recent Offers Released

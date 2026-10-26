@@ -135,8 +135,8 @@ export default function HolidayManager({
 
         <div className="px-5 py-4 space-y-5">
           {canWrite && (
-            <div className="rounded-lg bg-slate-900/60 border border-slate-800">
-              <div className="px-4 py-2 rounded-t-lg bg-slate-800/40 border-b border-slate-800">
+            <div className="rounded-md bg-slate-900/60 border border-slate-800">
+              <div className="px-4 py-2 rounded-t-xl bg-slate-800/40 border-b border-slate-800">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Add Holiday</span>
               </div>
               <div className="p-4 space-y-3">

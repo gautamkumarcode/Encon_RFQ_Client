@@ -100,13 +100,13 @@ export default function AttendanceCalendar({
         <div className="flex items-center gap-2">
           <button
             onClick={() => onMonthChange(shiftMonth(month, -1))}
-            className="p-1.5 rounded-lg bg-slate-800/70 text-slate-300 hover:text-white border border-slate-700/60"
+            className="p-1.5 rounded-md bg-slate-800/70 text-slate-300 hover:text-white border border-slate-700/60"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={() => onMonthChange(shiftMonth(month, 1))}
-            className="p-1.5 rounded-lg bg-slate-800/70 text-slate-300 hover:text-white border border-slate-700/60"
+            className="p-1.5 rounded-md bg-slate-800/70 text-slate-300 hover:text-white border border-slate-700/60"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -114,7 +114,7 @@ export default function AttendanceCalendar({
         </div>
         <button
           onClick={() => onMonthChange(monthKey())}
-          className="text-[11px] font-bold text-thermal-400 hover:text-white px-2.5 py-1.5 rounded-lg border border-thermal-500/30 bg-thermal-500/10"
+          className="text-[11px] font-bold text-thermal-400 hover:text-white px-2.5 py-1.5 rounded-md border border-thermal-500/30 bg-thermal-500/10"
         >
           Today
         </button>
@@ -157,7 +157,7 @@ export default function AttendanceCalendar({
               key={idx}
               disabled={!personRec}
               onClick={() => personRec && onSelectRecord?.(personRec)}
-              className={`min-h-[64px] rounded-lg border p-1.5 text-left transition-colors ${
+              className={`min-h-[64px] rounded-md border p-1.5 text-left transition-colors ${
                 personRec
                   ? `${cls} cursor-pointer hover:brightness-125`
                   : isHoliday

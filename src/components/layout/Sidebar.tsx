@@ -161,7 +161,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 								key={item.path}
 								href={item.path}
 								onClick={() => onMobileClose && onMobileClose()}
-								className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-all duration-150 ${
+								className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-xs transition-all duration-150 ${
 									isActive
 										? "bg-slate-800 text-white font-bold border-l-2 border-thermal-500 shadow-2xs"
 										: "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 font-medium"
@@ -207,7 +207,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 						<div>
 							<div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
 								<div className="flex items-center gap-2">
-									<div className="w-8 h-8 rounded-lg bg-white p-1 flex items-center justify-center border border-slate-200">
+									<div className="w-8 h-8 rounded-md bg-white p-1 flex items-center justify-center border border-slate-200">
 										<EnconLogo className="w-5 h-5" />
 									</div>
 									<span className="font-extrabold text-base text-white tracking-wide">
@@ -216,7 +216,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 								</div>
 								<button
 									onClick={onMobileClose}
-									className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white">
+									className="p-1.5 rounded-md bg-slate-800 text-slate-400 hover:text-white">
 									<X className="w-4 h-4" />
 								</button>
 							</div>

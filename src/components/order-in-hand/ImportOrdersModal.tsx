@@ -83,7 +83,7 @@ export default function ImportOrdersModal({ onClose, onImported }: Props) {
         {/* Body */}
         <div className="flex-1 space-y-4 overflow-y-auto bg-slate-900 px-5 py-4">
           {/* File picker */}
-          <div className="rounded-lg border border-slate-800 bg-slate-800/30 p-4">
+          <div className="rounded-md border border-slate-800 bg-slate-800/30 p-4">
             <input ref={inputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={(e) => pickFile(e.target.files?.[0] ?? null)} />
             <div className="flex flex-wrap items-center gap-3">
               <button
@@ -111,7 +111,7 @@ export default function ImportOrdersModal({ onClose, onImported }: Props) {
 
           {/* Preview table */}
           {preview && preview.length > 0 && (
-            <div className="overflow-hidden rounded-lg border border-slate-800">
+            <div className="overflow-hidden rounded-md border border-slate-800">
               <div className="flex items-center justify-between border-b border-slate-800 bg-slate-800/40 px-4 py-2">
                 <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-300">Parsed orders ({preview.length})</h3>
                 {duplicateCount > 0 && <span className="text-[11px] text-amber-300">{duplicateCount} already exist — will be skipped</span>}

@@ -113,10 +113,10 @@ export default function UserProfilePage() {
   return (
     <div className="space-y-6 w-full">
       {/* BRAND PROFILE HEADER */}
-      <div className="glass-card p-6 rounded-2xl border border-slate-800 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="glass-card p-6 rounded-xl border border-slate-800 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           {/* DEFAULT COMPANY LOGO AVATAR FRAME */}
-          <div className="w-20 h-20 rounded-2xl bg-slate-950 p-2.5 border border-slate-800 shadow-2xl flex items-center justify-center shrink-0 relative group">
+          <div className="w-20 h-20 rounded-xl bg-slate-950 p-2.5 border border-slate-800 shadow-2xl flex items-center justify-center shrink-0 relative group">
             <EnconLogo className="w-14 h-14" />
             <span className="absolute -bottom-1 -right-1 p-1 bg-emerald-500 rounded-full border-2 border-slate-950" title="Active Enterprise Account"></span>
           </div>
@@ -124,7 +124,7 @@ export default function UserProfilePage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-extrabold text-white tracking-wide">{user.name}</h1>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-thermal-500/20 text-thermal-400 border border-thermal-500/30">
+              <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-thermal-500/20 text-thermal-400 border border-thermal-500/30">
                 {roleName}
               </span>
             </div>
@@ -149,7 +149,7 @@ export default function UserProfilePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* EDIT PROFILE DETAILS CARD */}
-        <div className="glass-card p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+        <div className="glass-card p-6 rounded-xl border border-slate-800 shadow-xl space-y-4">
           <div className="border-b border-slate-800 pb-3 flex items-center justify-between">
             <h2 className="text-sm font-bold text-white flex items-center gap-2">
               <User className="w-4 h-4 text-thermal-400" /> Personal Profile Details
@@ -167,7 +167,7 @@ export default function UserProfilePage() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-md pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
                   placeholder="Enter your name"
                 />
               </div>
@@ -181,7 +181,7 @@ export default function UserProfilePage() {
                   type="email"
                   disabled
                   value={user.email}
-                  className="w-full bg-slate-900/60 border border-slate-800/80 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-400 cursor-not-allowed"
+                  className="w-full bg-slate-900/60 border border-slate-800/80 rounded-md pl-9 pr-3 py-2 text-xs text-slate-400 cursor-not-allowed"
                 />
               </div>
             </div>
@@ -194,7 +194,7 @@ export default function UserProfilePage() {
                   type="text"
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-md pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
                   placeholder="+91 98765 43210"
                 />
               </div>
@@ -208,7 +208,7 @@ export default function UserProfilePage() {
                   type="text"
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-md pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
                   placeholder="Thermal Engineering / Sales & Marketing"
                 />
               </div>
@@ -218,7 +218,7 @@ export default function UserProfilePage() {
               <button
                 type="submit"
                 disabled={savingProfile}
-                className="w-full py-2.5 rounded-xl bg-thermal-500 hover:bg-thermal-600 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-thermal-500/20"
+                className="w-full py-2.5 rounded-md bg-thermal-500 hover:bg-thermal-600 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-thermal-500/20"
               >
                 <Save className="w-4 h-4" />
                 {savingProfile ? 'Saving Changes...' : 'Save Profile Changes'}
@@ -228,7 +228,7 @@ export default function UserProfilePage() {
         </div>
 
         {/* SECURITY & PASSWORD CHANGE CARD */}
-        <div className="glass-card p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+        <div className="glass-card p-6 rounded-xl border border-slate-800 shadow-xl space-y-4">
           <div className="border-b border-slate-800 pb-3 flex items-center justify-between">
             <h2 className="text-sm font-bold text-white flex items-center gap-2">
               <KeyRound className="w-4 h-4 text-amber-400" /> Account Security & Password
@@ -246,7 +246,7 @@ export default function UserProfilePage() {
                   required
                   value={oldPassword}
                   onChange={(e) => setOldPassword(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-md pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
                   placeholder="••••••••"
                 />
               </div>
@@ -261,7 +261,7 @@ export default function UserProfilePage() {
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-md pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
                   placeholder="••••••••"
                 />
               </div>
@@ -276,7 +276,7 @@ export default function UserProfilePage() {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-md pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
                   placeholder="••••••••"
                 />
               </div>
@@ -286,7 +286,7 @@ export default function UserProfilePage() {
               <button
                 type="submit"
                 disabled={savingPassword}
-                className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 border border-slate-700"
+                className="w-full py-2.5 rounded-md bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all flex items-center justify-center gap-2 border border-slate-700"
               >
                 <Lock className="w-4 h-4 text-amber-400" />
                 {savingPassword ? 'Updating Password...' : 'Update Account Password'}

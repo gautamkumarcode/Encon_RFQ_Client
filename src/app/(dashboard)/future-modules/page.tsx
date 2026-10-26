@@ -46,7 +46,7 @@ export default function FutureModulesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="glass-card p-6 rounded-3xl border border-slate-800">
+      <div className="glass-card p-6 rounded-xl border border-slate-800">
         <div className="flex items-center gap-2 text-thermal-400 font-bold text-xs mb-1">
           <Sparkles className="w-4 h-4 animate-spin" /> Extensible Architecture
         </div>
@@ -63,13 +63,13 @@ export default function FutureModulesPage() {
         {modules.map((m) => {
           const Icon = m.icon;
           return (
-            <div key={m.title} className="glass-card p-6 rounded-3xl border border-slate-800 flex flex-col justify-between">
+            <div key={m.title} className="glass-card p-6 rounded-xl border border-slate-800 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 rounded-2xl bg-thermal-500/10 text-thermal-400 border border-thermal-500/20">
+                  <div className="p-3 rounded-xl bg-thermal-500/10 text-thermal-400 border border-thermal-500/20">
                     <Icon className="w-6 h-6" />
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30">
+                  <span className="px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30">
                     {m.status}
                   </span>
                 </div>
@@ -92,7 +92,7 @@ export default function FutureModulesPage() {
               <div className="mt-6 pt-4 border-t border-slate-800/80">
                 <button
                   disabled
-                  className="w-full py-2.5 bg-slate-900 border border-slate-800 text-slate-500 font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-not-allowed"
+                  className="w-full py-2.5 bg-slate-900 border border-slate-800 text-slate-500 font-bold text-xs rounded-md flex items-center justify-center gap-2 cursor-not-allowed"
                 >
                   <span>API Adapter Ready</span>
                   <ArrowRight className="w-3.5 h-3.5" />

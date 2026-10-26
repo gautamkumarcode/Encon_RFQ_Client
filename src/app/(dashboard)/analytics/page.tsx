@@ -18,7 +18,7 @@ export default function EmployeeAnalyticsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="glass-card p-6 rounded-3xl border border-slate-800">
+      <div className="glass-card p-6 rounded-xl border border-slate-800">
         <h1 className="text-xl font-extrabold text-white flex items-center gap-2">
           <BarChart3 className="w-5 h-5 text-thermal-500" /> Employee Performance & Analytics
         </h1>
@@ -32,10 +32,10 @@ export default function EmployeeAnalyticsPage() {
         {employees.map((emp, i) => (
           <div
             key={emp.email}
-            className="glass-card glass-card-hover p-5 rounded-3xl border border-slate-800 relative overflow-hidden"
+            className="glass-card glass-card-hover p-5 rounded-xl border border-slate-800 relative overflow-hidden"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-thermal-500/20 text-thermal-300 border border-thermal-500/30">
+              <span className="text-[10px] font-extrabold px-2.5 py-1 rounded bg-thermal-500/20 text-thermal-300 border border-thermal-500/30">
                 Rank #{i + 1}
               </span>
               <span className="text-[10px] text-slate-400 flex items-center gap-1">
@@ -71,7 +71,7 @@ export default function EmployeeAnalyticsPage() {
       </div>
 
       {/* Detailed Analytics Table */}
-      <div className="glass-card rounded-3xl border border-slate-800 overflow-hidden">
+      <div className="glass-card rounded-xl border border-slate-800 overflow-hidden">
         <div className="p-5 border-b border-slate-800 flex items-center justify-between">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <Award className="w-4 h-4 text-thermal-500" /> Performance Breakdown

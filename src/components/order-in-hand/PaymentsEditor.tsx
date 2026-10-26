@@ -79,7 +79,7 @@ export default function PaymentsEditor({ payments, currency, orderValue, onChang
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800 pt-3">
         <button
           onClick={onAdd}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-[11px] font-medium text-slate-300 transition-colors hover:border-thermal-500/60 hover:text-thermal-300"
+          className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-[11px] font-medium text-slate-300 transition-colors hover:border-thermal-500/60 hover:text-thermal-300"
         >
           <Plus className="h-3.5 w-3.5" /> Add payment
         </button>

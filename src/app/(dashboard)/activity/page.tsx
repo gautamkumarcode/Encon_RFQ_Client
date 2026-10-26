@@ -33,7 +33,7 @@ function ActivityLogsContent() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="glass-card p-6 rounded-3xl border border-slate-800">
+      <div className="glass-card p-6 rounded-xl border border-slate-800">
         <h1 className="text-xl font-extrabold text-white flex items-center gap-2">
           <History className="w-5 h-5 text-thermal-500" /> System Activity Audit Logs
         </h1>
@@ -43,7 +43,7 @@ function ActivityLogsContent() {
       </div>
 
       {/* Filter Bar */}
-      <div className="glass-card p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="glass-card p-4 rounded-xl border border-slate-800 flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-72">
           <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
           <input
@@ -51,14 +51,14 @@ function ActivityLogsContent() {
             placeholder="Filter by email address..."
             value={emailQuery}
             onChange={(e) => setEmailQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700/60 rounded-xl text-xs text-white focus:outline-none focus:border-thermal-500"
+            className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700/60 rounded-md text-xs text-white focus:outline-none focus:border-thermal-500"
           />
         </div>
 
         <select
           value={actionFilter}
           onChange={(e) => setActionFilter(e.target.value)}
-          className="px-3 py-2 bg-slate-900 border border-slate-700/60 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-thermal-500 w-full md:w-auto"
+          className="px-3 py-2 bg-slate-900 border border-slate-700/60 rounded-md text-xs text-slate-300 focus:outline-none focus:border-thermal-500 w-full md:w-auto"
         >
           <option value="">All Action Types</option>
           <option value="LOGIN">LOGIN</option>
@@ -71,7 +71,7 @@ function ActivityLogsContent() {
       </div>
 
       {/* Audit Log Table */}
-      <div className="glass-card rounded-3xl border border-slate-800 overflow-hidden">
+      <div className="glass-card rounded-xl border border-slate-800 overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-xs text-slate-400">Loading audit logs...</div>
         ) : logs.length === 0 ? (

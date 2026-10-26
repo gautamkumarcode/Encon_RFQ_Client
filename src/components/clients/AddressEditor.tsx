@@ -25,7 +25,7 @@ export default function AddressEditor({ addresses, onChange, onAdd, onRemove }: 
       </div>
       <div className="space-y-3">
         {addresses.map((a, i) => (
-          <div key={i} className="rounded-lg border border-slate-800 bg-slate-900/40 p-3">
+          <div key={i} className="rounded-md border border-slate-800 bg-slate-900/40 p-3">
             <div className="mb-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Address {i + 1}</span>

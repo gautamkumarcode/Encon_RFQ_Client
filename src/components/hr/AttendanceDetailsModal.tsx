@@ -110,8 +110,8 @@ export default function AttendanceDetailsModal({
 
         <div className="px-5 py-4 space-y-4">
           {/* Day summary */}
-          <div className="rounded-lg bg-slate-900/60 border border-slate-800">
-            <div className="px-4 py-2 rounded-t-lg bg-slate-800/40 border-b border-slate-800 flex items-center gap-2">
+          <div className="rounded-md bg-slate-900/60 border border-slate-800">
+            <div className="px-4 py-2 rounded-t-xl bg-slate-800/40 border-b border-slate-800 flex items-center gap-2">
               <Globe className="w-3.5 h-3.5 text-thermal-400" />
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">Day</span>
             </div>
@@ -168,8 +168,8 @@ function PunchCard({
       : null;
 
   return (
-    <div className="rounded-lg bg-slate-900/60 border border-slate-800">
-      <div className="px-4 py-2 rounded-t-lg bg-slate-800/40 border-b border-slate-800 flex items-center justify-between">
+    <div className="rounded-md bg-slate-900/60 border border-slate-800">
+      <div className="px-4 py-2 rounded-t-xl bg-slate-800/40 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {icon}
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">{title}</span>

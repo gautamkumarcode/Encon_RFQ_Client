@@ -30,9 +30,9 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen bg-obsidian-900 flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full glass-card rounded-3xl p-8 border border-slate-800 shadow-2xl">
+      <div className="max-w-md w-full glass-card rounded-xl p-8 border border-slate-800 shadow-2xl">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-thermal-500/20 text-thermal-400 mb-3 border border-thermal-500/30">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-thermal-500/20 text-thermal-400 mb-3 border border-thermal-500/30">
             <Flame className="w-6 h-6" />
           </div>
           <h1 className="text-xl font-bold text-white">Reset Password</h1>
@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
 
         {resetToken ? (
           <div className="space-y-4 text-center">
-            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs">
+            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs">
               <p className="font-semibold mb-1">Reset Token Dispatched</p>
               <p className="text-[11px]">For dev environment testing, your reset token is:</p>
               <code className="block mt-2 p-2 bg-slate-950 rounded text-[10px] text-white font-mono break-all">
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-md text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
                   placeholder="name@encon.co.in"
                 />
               </div>
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 bg-gradient-to-r from-thermal-600 to-thermal-500 hover:from-thermal-500 hover:to-amber-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+              className="w-full py-3 bg-gradient-to-r from-thermal-600 to-thermal-500 hover:from-thermal-500 hover:to-amber-500 text-white font-bold text-xs rounded-md shadow-lg transition-all flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

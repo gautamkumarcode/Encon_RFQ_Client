@@ -29,7 +29,7 @@ export default function ClientDetailModal({ id, name, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm">
-      <div className="my-8 w-full max-w-4xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl">
+      <div className="my-8 w-full max-w-4xl rounded-xl border border-slate-800 bg-slate-900 shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-800 px-5 py-3">
           <h2 className="flex items-center gap-2 text-sm font-bold text-white">
             <Building2 className="h-4 w-4 text-thermal-400" /> {name}
@@ -81,7 +81,7 @@ export default function ClientDetailModal({ id, name, onClose }: Props) {
                 {client?.addresses?.length ? (
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {client.addresses.map((a, i) => (
-                      <div key={i} className="rounded-lg border border-slate-800 bg-slate-900/40 p-3 text-xs text-slate-300">
+                      <div key={i} className="rounded-md border border-slate-800 bg-slate-900/40 p-3 text-xs text-slate-300">
                         <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-thermal-400">{a.type || 'Address'}</div>
                         <div>{a.line1}</div>
                         {a.line2 && <div>{a.line2}</div>}
@@ -100,7 +100,7 @@ export default function ClientDetailModal({ id, name, onClose }: Props) {
               {/* Orders */}
               <Section title={`Orders (${orders.length})`}>
                 {orders.length ? (
-                  <div className="overflow-x-auto rounded-lg border border-slate-800">
+                  <div className="overflow-x-auto rounded-md border border-slate-800">
                     <table className="w-full border-collapse text-left">
                       <thead>
                         <tr className="bg-slate-900/60 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
@@ -136,7 +136,7 @@ export default function ClientDetailModal({ id, name, onClose }: Props) {
               {/* Enquiries */}
               <Section title={`Enquiries (${enquiries.length})`}>
                 {enquiries.length ? (
-                  <div className="overflow-x-auto rounded-lg border border-slate-800">
+                  <div className="overflow-x-auto rounded-md border border-slate-800">
                     <table className="w-full border-collapse text-left">
                       <thead>
                         <tr className="bg-slate-900/60 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
@@ -169,7 +169,7 @@ export default function ClientDetailModal({ id, name, onClose }: Props) {
         </div>
 
         <div className="flex items-center justify-end border-t border-slate-800 px-5 py-3">
-          <button onClick={onClose} className="rounded-lg border border-slate-700 px-4 py-2 text-xs font-medium text-slate-300 hover:border-slate-600">
+          <button onClick={onClose} className="rounded-md border border-slate-700 px-4 py-2 text-xs font-medium text-slate-300 hover:border-slate-600">
             Close
           </button>
         </div>

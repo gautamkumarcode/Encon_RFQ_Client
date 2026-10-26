@@ -195,7 +195,7 @@ function UserManagementContent() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-6 rounded-3xl border border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-6 rounded-xl border border-slate-800">
         <div>
           <h1 className="text-xl font-extrabold text-white flex items-center gap-2">
             <Users className="w-5 h-5 text-thermal-500" /> User Management
@@ -209,14 +209,14 @@ function UserManagementContent() {
             if (roles.length > 0) setFormData((prev) => ({ ...prev, roleId: roles[0].id }));
             setShowCreateModal(true);
           }}
-          className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2 self-start sm:self-auto transition-all"
+          className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-md shadow-md flex items-center gap-2 self-start sm:self-auto transition-all"
         >
           <UserPlus className="w-4 h-4" /> Add New User
         </button>
       </div>
 
       {/* Filter Bar */}
-      <div className="glass-card p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="glass-card p-4 rounded-xl border border-slate-800 flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-72">
           <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
           <input
@@ -224,7 +224,7 @@ function UserManagementContent() {
             placeholder="Search by name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700/60 rounded-xl text-xs text-white focus:outline-none focus:border-thermal-500"
+            className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700/60 rounded-md text-xs text-white focus:outline-none focus:border-thermal-500"
           />
         </div>
 
@@ -232,7 +232,7 @@ function UserManagementContent() {
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-900 border border-slate-700/60 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-thermal-500"
+            className="px-3 py-2 bg-slate-900 border border-slate-700/60 rounded-md text-xs text-slate-300 focus:outline-none focus:border-thermal-500"
           >
             <option value="">All Roles</option>
             {roles.map((r) => (
@@ -245,7 +245,7 @@ function UserManagementContent() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-900 border border-slate-700/60 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-thermal-500"
+            className="px-3 py-2 bg-slate-900 border border-slate-700/60 rounded-md text-xs text-slate-300 focus:outline-none focus:border-thermal-500"
           >
             <option value="">All Statuses</option>
             <option value="ACTIVE">ACTIVE</option>
@@ -255,7 +255,7 @@ function UserManagementContent() {
       </div>
 
       {/* User Table */}
-      <div className="glass-card rounded-3xl border border-slate-800 overflow-hidden">
+      <div className="glass-card rounded-xl border border-slate-800 overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-xs text-slate-400">Loading user directory...</div>
         ) : users.length === 0 ? (
@@ -287,7 +287,7 @@ function UserManagementContent() {
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-thermal-400 font-semibold text-[10px] flex items-center gap-1 w-fit">
+                      <span className="px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-thermal-400 font-semibold text-[10px] flex items-center gap-1 w-fit">
                         <Shield className="w-3 h-3 text-thermal-500" /> {typeof u.role === 'object' ? (u.role as any).name : u.role}
                       </span>
                     </td>
@@ -323,7 +323,7 @@ function UserManagementContent() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => openEditModal(u)}
-                          className="p-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 transition-colors"
+                          className="p-1.5 rounded-md bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 transition-colors"
                           title="Edit User & Roles"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -331,20 +331,20 @@ function UserManagementContent() {
                         <button
                           onClick={() => resendWelcomeMutation.mutate(u.id)}
                           disabled={resendWelcomeMutation.isPending}
-                          className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors"
+                          className="p-1.5 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition-colors"
                           title="Resend Welcome & Login Link Email"
                         >
                           <Mail className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => toggleStatusMutation.mutate(u.id)}
-                          className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 transition-colors"
+                          className="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-[10px] text-slate-300 transition-colors"
                         >
                           {u.status === 'ACTIVE' ? 'Disable' : 'Enable'}
                         </button>
                         <button
                           onClick={() => setShowResetModal(u)}
-                          className="p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 transition-colors"
+                          className="p-1.5 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 transition-colors"
                           title="Reset Password"
                         >
                           <KeyRound className="w-3.5 h-3.5" />
@@ -362,7 +362,7 @@ function UserManagementContent() {
       {/* Create User Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="max-w-lg w-full glass-card rounded-3xl p-6 border border-slate-800 shadow-2xl">
+          <div className="max-w-lg w-full glass-card rounded-xl p-6 border border-slate-800 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-thermal-500" /> Create Encon User Account
@@ -386,7 +386,7 @@ function UserManagementContent() {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-thermal-500"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-md text-xs text-white focus:outline-none focus:border-thermal-500"
                   placeholder="e.g. Rahul Sharma"
                 />
               </div>
@@ -398,7 +398,7 @@ function UserManagementContent() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-thermal-500"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-md text-xs text-white focus:outline-none focus:border-thermal-500"
                   placeholder="rahul@encon.co.in"
                 />
               </div>
@@ -410,7 +410,7 @@ function UserManagementContent() {
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-thermal-500"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-md text-xs text-white focus:outline-none focus:border-thermal-500"
                 />
               </div>
 
@@ -419,7 +419,7 @@ function UserManagementContent() {
                 <select
                   value={formData.roleId}
                   onChange={(e) => setFormData({ ...formData, roleId: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-thermal-500"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-md text-xs text-white focus:outline-none focus:border-thermal-500"
                 >
                   {roles.map((r) => (
                     <option key={r.id} value={r.id}>
@@ -455,14 +455,14 @@ function UserManagementContent() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+                  className="px-4 py-2 rounded-md text-xs text-slate-400 hover:text-white"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createUserMutation.isPending}
-                  className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-xl shadow-md transition-all"
+                  className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-md shadow-md transition-all"
                 >
                   {createUserMutation.isPending ? 'Creating...' : 'Initialize User'}
                 </button>
@@ -475,7 +475,7 @@ function UserManagementContent() {
       {/* Edit User & Role Modal */}
       {showEditModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="max-w-lg w-full glass-card rounded-3xl p-6 border border-slate-800 shadow-2xl">
+          <div className="max-w-lg w-full glass-card rounded-xl p-6 border border-slate-800 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <Edit2 className="w-5 h-5 text-cyan-400" /> Edit User & Assign Roles
@@ -499,7 +499,7 @@ function UserManagementContent() {
                   required
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-md text-xs text-white focus:outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -510,7 +510,7 @@ function UserManagementContent() {
                   required
                   value={editFormData.email}
                   onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-md text-xs text-white focus:outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -519,7 +519,7 @@ function UserManagementContent() {
                 <select
                   value={editFormData.roleId}
                   onChange={(e) => setEditFormData({ ...editFormData, roleId: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500 font-semibold text-cyan-400"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-md text-xs text-white focus:outline-none focus:border-cyan-500 font-semibold text-cyan-400"
                 >
                   {roles.map((r) => (
                     <option key={r.id} value={r.id}>
@@ -536,7 +536,7 @@ function UserManagementContent() {
                   onChange={(e) =>
                     setEditFormData({ ...editFormData, status: e.target.value as 'ACTIVE' | 'DISABLED' })
                   }
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-md text-xs text-white focus:outline-none focus:border-cyan-500"
                 >
                   <option value="ACTIVE">ACTIVE</option>
                   <option value="DISABLED">DISABLED</option>
@@ -569,14 +569,14 @@ function UserManagementContent() {
                 <button
                   type="button"
                   onClick={() => setShowEditModal(null)}
-                  className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+                  className="px-4 py-2 rounded-md text-xs text-slate-400 hover:text-white"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={updateUserMutation.isPending}
-                  className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-xl shadow-md transition-all"
+                  className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-md shadow-md transition-all"
                 >
                   {updateUserMutation.isPending ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -589,7 +589,7 @@ function UserManagementContent() {
       {/* Admin Reset Password Modal */}
       {showResetModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="max-w-md w-full glass-card rounded-3xl p-6 border border-slate-800 shadow-2xl">
+          <div className="max-w-md w-full glass-card rounded-xl p-6 border border-slate-800 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <KeyRound className="w-5 h-5 text-amber-500" /> Reset User Password
@@ -609,7 +609,7 @@ function UserManagementContent() {
                   type="text"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-md text-xs text-white focus:outline-none focus:border-amber-500"
                 />
               </div>
 
@@ -617,7 +617,7 @@ function UserManagementContent() {
                 <button
                   type="button"
                   onClick={() => setShowResetModal(null)}
-                  className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+                  className="px-4 py-2 rounded-md text-xs text-slate-400 hover:text-white"
                 >
                   Cancel
                 </button>
@@ -626,7 +626,7 @@ function UserManagementContent() {
                   onClick={() =>
                     resetPasswordMutation.mutate({ userId: showResetModal.id, pass: newPassword })
                   }
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow-lg"
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-md shadow-lg"
                 >
                   Confirm Reset
                 </button>

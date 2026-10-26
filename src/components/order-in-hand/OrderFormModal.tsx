@@ -53,7 +53,7 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="overflow-hidden rounded-lg border border-slate-800 bg-slate-900/60">
+    <section className="overflow-hidden rounded-md border border-slate-800 bg-slate-900/60">
       <header className="flex items-center gap-2 border-b border-slate-800 bg-slate-800/40 px-4 py-2">
         <span className="text-thermal-400">{icon}</span>
         <div className="min-w-0">
@@ -130,7 +130,7 @@ export default function OrderFormModal({
         <div className="flex-1 space-y-4 overflow-y-auto bg-slate-900 px-5 py-4">
           {/* Import banner (new orders only) */}
           {!editingId && enquiries.length > 0 && (
-            <div className="rounded-lg border border-slate-800 bg-slate-800/30 p-4">
+            <div className="rounded-md border border-slate-800 bg-slate-800/30 p-4">
               <div className="flex items-center gap-2">
                 <Download className="h-4 w-4 text-thermal-400" />
                 <span className="text-xs font-semibold text-slate-200">Start from a PO-Received enquiry</span>

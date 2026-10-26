@@ -169,7 +169,7 @@ export function GmailEmailViewer({
 	}, [chatMessages, firstReceivedDate]);
 
 	return (
-		<div className="rounded-2xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 p-4 md:p-5 h-full flex flex-col justify-between space-y-4 shadow-2xs">
+		<div className="rounded-xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 p-4 md:p-5 h-full flex flex-col justify-between space-y-4 shadow-2xs">
 			<div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3 shrink-0">
 				<div className="flex items-center gap-3">
 					<div className="w-10 h-10 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-bold flex items-center justify-center border border-cyan-500/30 text-sm shrink-0">
@@ -212,7 +212,7 @@ export function GmailEmailViewer({
 							href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(fromEmail)}&su=RE: ${encodeURIComponent(subject || "")}`}
 							target="_blank"
 							rel="noopener noreferrer"
-							className="px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-2xs transition-all flex items-center gap-1.5">
+							className="px-3 py-1.5 rounded-md text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-2xs transition-all flex items-center gap-1.5">
 							<Send className="w-3.5 h-3.5" /> Reply{" "}
 							<ExternalLink className="w-3 h-3" />
 						</a>
@@ -222,7 +222,7 @@ export function GmailEmailViewer({
 						<button
 							type="button"
 							onClick={() => setViewMode("original")}
-							className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 whitespace-nowrap transition-all ${
+							className={`px-3 py-1 rounded-md text-xs font-semibold shrink-0 whitespace-nowrap transition-all ${
 								viewMode === "original"
 									? "bg-cyan-600 text-white font-bold shadow-2xs"
 									: "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -232,7 +232,7 @@ export function GmailEmailViewer({
 						<button
 							type="button"
 							onClick={() => setViewMode("gmail")}
-							className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 whitespace-nowrap transition-all ${
+							className={`px-3 py-1 rounded-md text-xs font-semibold shrink-0 whitespace-nowrap transition-all ${
 								viewMode === "gmail"
 									? "bg-cyan-600 text-white font-bold shadow-2xs"
 									: "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -242,7 +242,7 @@ export function GmailEmailViewer({
 						<button
 							type="button"
 							onClick={() => setViewMode("chat")}
-							className={`px-3 py-1 rounded-lg text-xs font-semibold shrink-0 whitespace-nowrap transition-all ${
+							className={`px-3 py-1 rounded-md text-xs font-semibold shrink-0 whitespace-nowrap transition-all ${
 								viewMode === "chat"
 									? "bg-cyan-600 text-white font-bold shadow-2xs"
 									: "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -300,7 +300,7 @@ export function GmailEmailViewer({
 											: "items-start mr-auto max-w-[88%]"
 									}`}>
 									<div
-										className={`w-full p-4 rounded-2xl space-y-2.5 shadow-lg border transition-all ${
+										className={`w-full p-4 rounded-xl space-y-2.5 shadow-lg border transition-all ${
 											msg.isCompany
 												? "bg-gradient-to-br from-amber-950/40 via-slate-900 to-obsidian-950 border-r-4 border-r-amber-500 border-amber-500/30 text-slate-100"
 												: "bg-gradient-to-br from-slate-900 via-slate-900 to-obsidian-950 border-l-4 border-l-cyan-500 border-slate-800 text-slate-200"
@@ -330,11 +330,11 @@ export function GmailEmailViewer({
 											</div>
 											<div className="flex items-center gap-2">
 												{msg.isCompany ? (
-													<span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold uppercase tracking-wider">
+													<span className="text-[9px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold uppercase tracking-wider">
 														ENCON TEAM
 													</span>
 												) : (
-													<span className="text-[9px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold uppercase tracking-wider">
+													<span className="text-[9px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold uppercase tracking-wider">
 														CUSTOMER
 													</span>
 												)}
@@ -375,7 +375,7 @@ export function GmailEmailViewer({
 					className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in"
 					onClick={() => setInternalSelectedImage(null)}>
 					<div
-						className="relative max-w-4xl max-h-[90vh] bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-2xl space-y-3"
+						className="relative max-w-4xl max-h-[90vh] bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-2xl space-y-3"
 						onClick={(e) => e.stopPropagation()}>
 						<div className="flex items-center justify-between border-b border-slate-800 pb-2">
 							<h4 className="text-sm font-bold text-white flex items-center gap-2">
@@ -388,13 +388,13 @@ export function GmailEmailViewer({
 									target="_blank"
 									rel="noopener noreferrer"
 									download={internalSelectedImage.filename}
-									className="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+									className="px-3 py-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition-all flex items-center gap-1.5">
 									<Download className="w-3.5 h-3.5" /> Download
 								</a>
 								<button
 									type="button"
 									onClick={() => setInternalSelectedImage(null)}
-									className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white">
+									className="p-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white">
 									<X className="w-4 h-4" />
 								</button>
 							</div>
@@ -404,7 +404,7 @@ export function GmailEmailViewer({
 							<img
 								src={internalSelectedImage.src}
 								alt={internalSelectedImage.filename}
-								className="max-h-[70vh] w-auto h-auto object-contain rounded-lg shadow-xl"
+								className="max-h-[70vh] w-auto h-auto object-contain rounded-md shadow-xl"
 								onError={(e) => {
 									(e.target as HTMLImageElement).src =
 										`data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="100%" height="100%" fill="%230f172a"/><rect x="20" y="20" width="360" height="260" rx="12" fill="%231e293b" stroke="%23334155" stroke-width="2"/><text x="200" y="150" text-anchor="middle" fill="%2394a3b8" font-family="sans-serif" font-size="14" font-weight="bold">${encodeURIComponent(internalSelectedImage.filename)}</text></svg>`;

@@ -66,7 +66,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       {/* CUSTOM CONFIRMATION MODAL */}
       {confirmConfig && (
         <div className="fixed inset-0 z-[999999] bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="glass-card bg-obsidian-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+          <div className="glass-card bg-obsidian-900 border border-slate-800 rounded-xl w-full max-w-md p-6 space-y-4 shadow-2xl">
             <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-3">
               <div className="flex items-center gap-3">
                 <div
@@ -106,14 +106,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
               <button
                 type="button"
                 onClick={() => setConfirmConfig(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+                className="px-4 py-2 rounded-md text-xs font-semibold text-slate-400 hover:text-white transition-colors"
               >
                 {confirmConfig.cancelText || 'Cancel'}
               </button>
               <button
                 type="button"
                 onClick={handleConfirmAction}
-                className={`px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md transition-all ${
+                className={`px-5 py-2 rounded-md text-xs font-bold text-white shadow-md transition-all ${
                   confirmConfig.type === 'danger'
                     ? 'bg-rose-600 hover:bg-rose-500'
                     : confirmConfig.type === 'warning'
@@ -148,7 +148,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                   : '1px solid rgba(249, 115, 22, 0.6)',
               boxShadow: '0 20px 30px -10px rgba(0, 0, 0, 0.8)',
             }}
-            className="p-3.5 rounded-2xl flex items-start justify-between gap-3 pointer-events-auto transition-all duration-300 shadow-2xl"
+            className="p-3.5 rounded-xl flex items-start justify-between gap-3 pointer-events-auto transition-all duration-300 shadow-2xl"
           >
             <div className="flex items-start gap-3">
               <div className="mt-0.5 shrink-0">
@@ -172,7 +172,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
               type="button"
               onClick={() => removeToast(t.id)}
               style={{ color: '#94a3b8' }}
-              className="hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors shrink-0"
+              className="hover:text-white p-1 rounded-md hover:bg-slate-800 transition-colors shrink-0"
             >
               <X className="w-4 h-4" />
             </button>

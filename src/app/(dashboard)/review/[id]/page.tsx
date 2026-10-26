@@ -200,11 +200,11 @@ export default function ReviewDetailPage() {
   return (
     <div className="space-y-4">
       {/* NAVIGATION & TOP HEADER */}
-      <div className="flex items-center justify-between glass-card p-3 rounded-2xl border border-slate-800">
+      <div className="flex items-center justify-between glass-card p-3 rounded-xl border border-slate-800">
         <button
           type="button"
           onClick={() => router.push('/review')}
-          className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-all"
+          className="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-all"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Reviews
         </button>
@@ -231,7 +231,7 @@ export default function ReviewDetailPage() {
                 showToast('Drive Error', err.message || 'Failed to open Drive folder', 'error');
               }
             }}
-            className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/40 shadow-sm transition-all flex items-center gap-1.5"
+            className="px-3.5 py-1.5 rounded-md text-xs font-bold bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/40 shadow-sm transition-all flex items-center gap-1.5"
             title="Open Google Drive folder for this RFQ"
           >
             <Folder className="w-3.5 h-3.5 text-emerald-400" /> Open Drive ↗
@@ -249,7 +249,7 @@ export default function ReviewDetailPage() {
       {/* 4-COLUMN WORKSTATION GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 items-stretch">
         {/* ITEM 1: ENQUIRY DETAILS */}
-        <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
+        <div className="glass-card p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between">
           <div className="space-y-3">
             <div className="border-b border-slate-800 pb-2 flex items-center justify-between">
               <h3 className="text-xs font-bold text-thermal-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -294,7 +294,7 @@ export default function ReviewDetailPage() {
         </div>
 
         {/* ITEM 2: FILLED QUESTIONNAIRE / RFQ DOCUMENT */}
-        <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
+        <div className="glass-card p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between">
           <div className="space-y-3">
             <div className="border-b border-slate-800 pb-2 flex items-center justify-between">
               <h3 className="text-xs font-bold text-thermal-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -317,7 +317,7 @@ export default function ReviewDetailPage() {
                       href={getAttachmentUrl(att.id, true)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-thermal-500 text-slate-200 flex items-center justify-between transition-all"
+                      className="p-2 rounded-md bg-slate-950 border border-slate-800 hover:border-thermal-500 text-slate-200 flex items-center justify-between transition-all"
                     >
                       <span className="truncate max-w-[140px] font-semibold">{att.filename}</span>
                       <Download className="w-3.5 h-3.5 text-thermal-400" />
@@ -341,7 +341,7 @@ export default function ReviewDetailPage() {
         </div>
 
         {/* ITEM 3: TECHNICAL CALCULATIONS */}
-        <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
+        <div className="glass-card p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between">
           <div className="space-y-3">
             <div className="border-b border-slate-800 pb-2 flex items-center justify-between">
               <h3 className="text-xs font-bold text-thermal-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -369,7 +369,7 @@ export default function ReviewDetailPage() {
         </div>
 
         {/* ITEM 4: COSTING & OFFER DOCUMENTS */}
-        <div className="glass-card p-4 rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
+        <div className="glass-card p-4 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between">
           <div className="space-y-3">
             <div className="border-b border-slate-800 pb-2 flex items-center justify-between">
               <h3 className="text-xs font-bold text-thermal-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -393,7 +393,7 @@ export default function ReviewDetailPage() {
                         href={getAttachmentUrl(att.id, true)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-thermal-500 text-slate-200 flex items-center justify-between transition-all"
+                        className="p-2 rounded-md bg-slate-950 border border-slate-800 hover:border-thermal-500 text-slate-200 flex items-center justify-between transition-all"
                       >
                         <span className="truncate max-w-[140px] font-semibold">{att.filename}</span>
                         <Download className="w-3.5 h-3.5 text-thermal-400" />
@@ -415,7 +415,7 @@ export default function ReviewDetailPage() {
                         href={getAttachmentUrl(att.id, true)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-thermal-500 text-slate-200 flex items-center justify-between transition-all"
+                        className="p-2 rounded-md bg-slate-950 border border-slate-800 hover:border-thermal-500 text-slate-200 flex items-center justify-between transition-all"
                       >
                         <span className="truncate max-w-[140px] font-semibold text-emerald-400">{att.filename}</span>
                         <Download className="w-3.5 h-3.5 text-emerald-400" />
@@ -433,7 +433,7 @@ export default function ReviewDetailPage() {
 
       {/* ADMIN & MANAGEMENT DECISION & APPROVAL PANEL */}
       {enquiry.status === 'Under review' || enquiry.status === 'Verified' ? (
-        <div className="glass-card p-4 rounded-2xl border border-slate-800 shadow-2xl space-y-3">
+        <div className="glass-card p-4 rounded-xl border border-slate-800 shadow-2xl space-y-3">
           <div className="border-b border-slate-800 pb-2.5 flex items-center justify-between">
             <div>
               <h3 className="text-xs font-bold text-white flex items-center gap-2">
@@ -458,7 +458,7 @@ export default function ReviewDetailPage() {
                 placeholder={enquiry.offerNo || 'e.g. ENCON.04026.278/FBD/NK'}
                 value={offerNo}
                 onChange={(e) => setOfferNo(e.target.value)}
-                className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
+                className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-md px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
               />
             </div>
 
@@ -468,7 +468,7 @@ export default function ReviewDetailPage() {
                 type="date"
                 value={offerDate}
                 onChange={(e) => setOfferDate(e.target.value)}
-                className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-thermal-500"
+                className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-md px-3 py-1.5 text-xs text-white focus:outline-none focus:border-thermal-500"
               />
             </div>
 
@@ -479,7 +479,7 @@ export default function ReviewDetailPage() {
                 placeholder="e.g. Technical costing checked & verified. Recommended for release."
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
-                className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
+                className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-md px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
               />
             </div>
           </div>
@@ -489,7 +489,7 @@ export default function ReviewDetailPage() {
               type="button"
               disabled={submitting}
               onClick={handleRequestChanges}
-              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-rose-950/40 border border-rose-500/30 text-rose-400 hover:text-rose-300 text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+              className="px-4 py-2 rounded-md bg-slate-900 hover:bg-rose-950/40 border border-rose-500/30 text-rose-400 hover:text-rose-300 text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
             >
               <XCircle className="w-3.5 h-3.5" /> Request Changes / Reject
             </button>
@@ -500,7 +500,7 @@ export default function ReviewDetailPage() {
                 type="button"
                 disabled={submitting}
                 onClick={handleVerify}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+                className="px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" /> {submitting ? 'Verifying...' : 'Verify & Recommend'}
               </button>
@@ -512,7 +512,7 @@ export default function ReviewDetailPage() {
                 type="button"
                 disabled={submitting}
                 onClick={handleFinalApprove}
-                className="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-cyan-500/20"
+                className="px-5 py-2 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-cyan-500/20"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" /> {submitting ? 'Granting Final Approval...' : 'Final Approve Offer (Admin)'}
               </button>
@@ -525,7 +525,7 @@ export default function ReviewDetailPage() {
           </div>
         </div>
       ) : (
-        <div className="glass-card p-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 shadow-xl flex items-center justify-between">
+        <div className="glass-card p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 shadow-xl flex items-center justify-between">
           <div className="flex items-center gap-3">
             <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
             <div>

@@ -23,7 +23,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className={`${inter.className} bg-obsidian-900 text-slate-100 min-h-screen`}>
+      <body className={`${inter.className} text-slate-100 min-h-screen`}>
         <ProvidersShell initialUser={initialUser}>{children}</ProvidersShell>
       </body>
     </html>

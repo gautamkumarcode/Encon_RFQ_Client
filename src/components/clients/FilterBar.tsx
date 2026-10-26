@@ -17,7 +17,7 @@ export default function FilterBar({ search, onSearch }: Props) {
           placeholder="Search client"
           value={search}
           onChange={(e) => onSearch(e.target.value)}
-          className="w-full rounded-lg border border-slate-800 bg-slate-900/60 py-2 pl-9 pr-3 text-xs text-slate-200 placeholder:text-slate-600 focus:border-thermal-500/60 focus:outline-none focus:ring-1 focus:ring-thermal-500/40"
+          className="w-full rounded-md border border-slate-800 bg-slate-900/60 py-2 pl-9 pr-3 text-xs text-slate-200 placeholder:text-slate-600 focus:border-thermal-500/60 focus:outline-none focus:ring-1 focus:ring-thermal-500/40"
         />
       </div>
     </div>

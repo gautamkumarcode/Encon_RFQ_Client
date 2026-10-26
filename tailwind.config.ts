@@ -28,9 +28,9 @@ const config: Config = {
           950: '#431407',
         },
         obsidian: {
-          900: '#0b0f17',
-          800: '#111827',
-          700: '#1f2937',
+          900: '#0a0e16', // app background - deep ink, low saturation
+          800: '#111927', // card surface - one clear step above background
+          700: '#1f2a3c', // hairline border / dividers
           600: '#374151',
         },
       },

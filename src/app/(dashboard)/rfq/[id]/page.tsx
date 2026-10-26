@@ -735,11 +735,11 @@ export default function EnquiryDetailPage() {
 	return (
 		<div className="space-y-4">
 			{/* Top Navigation & Header */}
-			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-gradient-to-r dark:from-obsidian-900 dark:via-slate-900 dark:to-obsidian-950 shadow-xs">
+			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-gradient-to-r dark:from-obsidian-900 dark:via-slate-900 dark:to-obsidian-950 shadow-xs">
 				<div className="flex items-center gap-3">
 					<button
 						onClick={() => router.push("/rfq")}
-						className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border border-slate-200 dark:border-slate-700 shrink-0"
+						className="p-2.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border border-slate-200 dark:border-slate-700 shrink-0"
 						title="Back to RFQ Tracker">
 						<ArrowLeft className="w-4 h-4" />
 					</button>
@@ -749,7 +749,7 @@ export default function EnquiryDetailPage() {
 								? "New Enquiry"
 								: `Enquiry Detail · ${enquiry.rfqId || ""}`}
 							{enquiry.status && (
-								<span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-500/30">
+								<span className="text-xs px-2.5 py-0.5 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-500/30">
 									{enquiry.status}
 								</span>
 							)}
@@ -800,7 +800,7 @@ export default function EnquiryDetailPage() {
 										);
 									}
 								}}
-								className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/40 shadow-2xs transition-all flex items-center justify-center gap-1.5 whitespace-nowrap"
+								className="px-3.5 py-2 rounded-md text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/40 shadow-2xs transition-all flex items-center justify-center gap-1.5 whitespace-nowrap"
 								title="Open Google Drive folder structure for this RFQ (Client documents, Technical Calcs, Costing & Offer)">
 								<Folder className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />{" "}
 								Open Drive
@@ -818,7 +818,7 @@ export default function EnquiryDetailPage() {
 									"info",
 								);
 							}}
-							className="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center gap-1.5 shadow-2xs whitespace-nowrap"
+							className="px-3 py-2 rounded-md text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center gap-1.5 shadow-2xs whitespace-nowrap"
 							title="Mark RFQ status as Incomplete (Missing client data or drawings)">
 							<AlertCircle className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" />{" "}
 							Mark Incomplete
@@ -828,7 +828,7 @@ export default function EnquiryDetailPage() {
 						<button
 							type="button"
 							onClick={() => router.push(`/review/${enquiry.id}`)}
-							className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-amber-600 hover:bg-amber-500 text-white shadow-xs transition-all flex items-center justify-center gap-1.5 whitespace-nowrap">
+							className="px-3.5 py-2 rounded-md text-xs font-semibold bg-amber-600 hover:bg-amber-500 text-white shadow-xs transition-all flex items-center justify-center gap-1.5 whitespace-nowrap">
 							<CheckSquare className="w-3.5 h-3.5 shrink-0" /> Open Review
 							Portal
 						</button>
@@ -836,7 +836,7 @@ export default function EnquiryDetailPage() {
 					<button
 						type="button"
 						onClick={() => router.push("/rfq")}
-						className="px-3 py-2 rounded-xl text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-center">
+						className="px-3 py-2 rounded-md text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-center">
 						Cancel
 					</button>
 					{canEdit ? (
@@ -844,7 +844,7 @@ export default function EnquiryDetailPage() {
 							type="button"
 							onClick={handleSave}
 							disabled={saving}
-							className="px-5 py-2.5 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 !text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer">
+							className="px-5 py-2.5 rounded-md text-xs font-bold bg-cyan-600 hover:bg-cyan-500 !text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer">
 							{saving ? "Saving..." : "Save Changes"}
 						</button>
 					) : (
@@ -858,7 +858,7 @@ export default function EnquiryDetailPage() {
 			{/* ADMIN REVIEW FEEDBACK BANNER (IF REJECTED / CHANGES REQUESTED) */}
 			{(enquiry.followupRemarks?.includes("[Review Feedback]") ||
 				enquiry.remarks?.includes("[Review Feedback]")) && (
-				<div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 shadow-lg flex items-start justify-between gap-3">
+				<div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 shadow-lg flex items-start justify-between gap-3">
 					<div className="flex items-start gap-3">
 						<AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
 						<div className="space-y-1">
@@ -886,7 +886,7 @@ export default function EnquiryDetailPage() {
 						<button
 							type="button"
 							onClick={handleResolveFeedback}
-							className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-all shrink-0 flex items-center gap-1.5">
+							className="px-3.5 py-1.5 rounded-md text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-all shrink-0 flex items-center gap-1.5">
 							<CheckCircle2 className="w-3.5 h-3.5" /> Mark Resolved ✓
 						</button>
 					)}
@@ -1166,7 +1166,7 @@ export default function EnquiryDetailPage() {
 				{/* CONTAINER 2: MAIN CUSTOMER & ENQUIRY DETAILS FORM (SIDE-BY-SIDE 2-COLUMN LAYOUT) */}
 				<form
 					onSubmit={handleSave}
-					className="glass-card p-5 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-5 w-full shadow-2xl">
+					className="glass-card p-5 md:p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-5 w-full shadow-2xl">
 					{/* SIDE-BY-SIDE GRID WRAPPER */}
 					<div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 						{/* LEFT COLUMN (5 cols): CUSTOMER DETAILS & ASSIGNMENT (COLLAPSIBLE) */}
@@ -1183,7 +1183,7 @@ export default function EnquiryDetailPage() {
 										onClick={() =>
 											setIsCustomerDetailsCollapsed(!isCustomerDetailsCollapsed)
 										}
-										className="px-2.5 py-1 rounded-lg bg-slate-200/80 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer">
+										className="px-2.5 py-1 rounded-md bg-slate-200/80 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer">
 										{isCustomerDetailsCollapsed ? (
 											<>
 												<ChevronDown className="w-3.5 h-3.5" /> Expand
@@ -1198,12 +1198,12 @@ export default function EnquiryDetailPage() {
 
 								{isCustomerDetailsCollapsed ? (
 									/* MINIMIZED SUMMARY VIEW */
-									<div className="p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
+									<div className="p-3 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
 										<div className="flex items-center justify-between">
 											<span className="font-bold text-slate-900 dark:text-white">
 												{enquiry.companyName || "No Company Name"}
 											</span>
-											<span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 font-bold border border-cyan-500/30">
+											<span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 font-bold border border-cyan-500/30">
 												{enquiry.status || "Open"}
 											</span>
 										</div>
@@ -1253,7 +1253,7 @@ export default function EnquiryDetailPage() {
 															companyName: e.target.value,
 														})
 													}
-													className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+													className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-md px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
 												/>
 											</div>
 											<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1271,7 +1271,7 @@ export default function EnquiryDetailPage() {
 																contactPerson: e.target.value,
 															})
 														}
-														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-md px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
 													/>
 												</div>
 												<div>
@@ -1285,7 +1285,7 @@ export default function EnquiryDetailPage() {
 														onChange={(e) =>
 															setEnquiry({ ...enquiry, mobile: e.target.value })
 														}
-														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-md px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
 													/>
 												</div>
 											</div>
@@ -1300,7 +1300,7 @@ export default function EnquiryDetailPage() {
 													onChange={(e) =>
 														setEnquiry({ ...enquiry, email: e.target.value })
 													}
-													className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+													className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-md px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
 												/>
 											</div>
 										</div>
@@ -1322,7 +1322,7 @@ export default function EnquiryDetailPage() {
 															itemDescription: e.target.value,
 														})
 													}
-													className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+													className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-md px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
 												/>
 											</div>
 
@@ -1347,7 +1347,7 @@ export default function EnquiryDetailPage() {
 																assignedToId: item?.id || "",
 															});
 														}}
-														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canChangeAssignment ? "opacity-70 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}>
+														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-md px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canChangeAssignment ? "opacity-70 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}>
 														<option value="">
 															Select Technical Assignee...
 														</option>
@@ -1385,7 +1385,7 @@ export default function EnquiryDetailPage() {
 																salesResponsibilityId: item?.id || "",
 															});
 														}}
-														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canChangeAssignment ? "opacity-70 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}>
+														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-md px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canChangeAssignment ? "opacity-70 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}>
 														<option value="">Unassigned</option>
 														{salesDirectory.map((item) => (
 															<option
@@ -1416,7 +1416,7 @@ export default function EnquiryDetailPage() {
 														onChange={(e) =>
 															setEnquiry({ ...enquiry, tat: e.target.value })
 														}
-														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-md px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
 													/>
 												</div>
 												<div>
@@ -1434,7 +1434,7 @@ export default function EnquiryDetailPage() {
 																offerNo: e.target.value,
 															})
 														}
-														className={`w-full bg-white dark:bg-slate-950 border border-indigo-900/80 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-indigo-500 focus:outline-none font-mono ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+														className={`w-full bg-white dark:bg-slate-950 border border-indigo-900/80 rounded-md px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-indigo-500 focus:outline-none font-mono ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
 													/>
 												</div>
 												<div>
@@ -1447,7 +1447,7 @@ export default function EnquiryDetailPage() {
 														onChange={(e) =>
 															setEnquiry({ ...enquiry, status: e.target.value })
 														}
-														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canChangeStatus ? "opacity-70 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}>
+														className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-md px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none ${!canChangeStatus ? "opacity-70 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}>
 														{STATUS_OPTIONS.map((opt) => (
 															<option key={opt} value={opt}>
 																{opt}
@@ -1481,7 +1481,7 @@ export default function EnquiryDetailPage() {
 										onChange={(e) =>
 											setEnquiry({ ...enquiry, pendingRemarks: e.target.value })
 										}
-										className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
+										className={`w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-md px-3 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none ${!canEdit ? "opacity-70 cursor-not-allowed" : ""}`}
 									/>
 								</div>
 							)}
@@ -1492,7 +1492,7 @@ export default function EnquiryDetailPage() {
 							<div className="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4 shadow-xs">
 								<div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
 									<div className="flex items-center gap-2">
-										<div className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
+										<div className="p-1.5 rounded-md bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
 											<Phone className="w-4 h-4" />
 										</div>
 										<div>
@@ -1506,7 +1506,7 @@ export default function EnquiryDetailPage() {
 										</div>
 									</div>
 									{enquiry.lastCallDate && (
-										<span className="text-[11px] px-3 py-1 rounded-lg bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-semibold border border-slate-300/60 dark:border-slate-700">
+										<span className="text-[11px] px-3 py-1 rounded-md bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono font-semibold border border-slate-300/60 dark:border-slate-700">
 											Last Call: {enquiry.lastCallDate}
 										</span>
 									)}
@@ -1528,7 +1528,7 @@ export default function EnquiryDetailPage() {
 												key={t.key}
 												type="button"
 												onClick={() => setFollowupType(t.key)}
-												className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+												className={`px-3 py-1 rounded-md text-xs font-semibold border transition-all cursor-pointer ${
 													followupType === t.key
 														? "bg-cyan-600 text-white border-cyan-500 font-bold shadow-xs"
 														: "bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-cyan-400"
@@ -1547,7 +1547,7 @@ export default function EnquiryDetailPage() {
 												type="date"
 												value={callDate}
 												onChange={(e) => setCallDate(e.target.value)}
-												className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-medium focus:border-cyan-500 focus:outline-none shadow-xs"
+												className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-md px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-medium focus:border-cyan-500 focus:outline-none shadow-xs"
 											/>
 										</div>
 
@@ -1565,7 +1565,7 @@ export default function EnquiryDetailPage() {
 														nextActionDate: e.target.value,
 													});
 												}}
-												className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-medium focus:border-cyan-500 focus:outline-none shadow-xs"
+												className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-md px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-medium focus:border-cyan-500 focus:outline-none shadow-xs"
 											/>
 										</div>
 
@@ -1574,7 +1574,7 @@ export default function EnquiryDetailPage() {
 												type="button"
 												disabled={loggingCall}
 												onClick={handleLogCall}
-												className="w-full py-2 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+												className="w-full py-2 rounded-md text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer">
 												<Plus className="w-3.5 h-3.5" />{" "}
 												{loggingCall ? "Saving..." : `Add ${followupType}`}
 											</button>
@@ -1590,7 +1590,7 @@ export default function EnquiryDetailPage() {
 											placeholder={`Enter ${followupType.toLowerCase()} discussion details, customer commitments...`}
 											value={callNote}
 											onChange={(e) => setCallNote(e.target.value)}
-											className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3.5 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-cyan-500 focus:outline-none font-medium shadow-xs"
+											className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-md px-3.5 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-cyan-500 focus:outline-none font-medium shadow-xs"
 										/>
 									</div>
 								</div>
@@ -1635,7 +1635,7 @@ export default function EnquiryDetailPage() {
 														<div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/60 pb-1.5">
 															<div className="flex items-center gap-2">
 																<span
-																	className={`px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${
+																	className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${
 																		isCall
 																			? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
 																			: isEmail
@@ -1692,14 +1692,14 @@ export default function EnquiryDetailPage() {
 						<button
 							type="button"
 							onClick={() => router.push("/rfq")}
-							className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
+							className="px-4 py-2 rounded-md text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
 							Back to Tracker
 						</button>
 						{canEdit ? (
 							<button
 								type="submit"
 								disabled={saving}
-								className="px-5 py-2.5 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer">
+								className="px-5 py-2.5 rounded-md text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer">
 								{saving && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
 								{saving ? "Saving..." : "Save Changes"}
 							</button>
@@ -1714,7 +1714,7 @@ export default function EnquiryDetailPage() {
 
 			{/* AUDIT TRAIL & STATUS ACTIVITY LOG TIMELINE */}
 			{!isNew && (
-				<div className="glass-card p-4 rounded-2xl border border-slate-800 shadow-xl space-y-3">
+				<div className="glass-card p-4 rounded-xl border border-slate-800 shadow-xl space-y-3">
 					<div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
 						<h3 className="text-xs font-bold text-white flex items-center gap-2">
 							<History className="w-4 h-4 text-thermal-400" /> Status Tracking &
@@ -1898,7 +1898,7 @@ export default function EnquiryDetailPage() {
 										key={log.id}
 										className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-start justify-between text-xs gap-3">
 										<div className="flex items-start gap-2.5 min-w-0">
-											<div className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-thermal-400 shrink-0 mt-0.5">
+											<div className="p-1.5 rounded-md bg-slate-900 border border-slate-800 text-thermal-400 shrink-0 mt-0.5">
 												<UserCheck className="w-3.5 h-3.5" />
 											</div>
 											<div className="space-y-0.5 min-w-0">
@@ -1942,18 +1942,18 @@ export default function EnquiryDetailPage() {
 									target="_blank"
 									rel="noopener noreferrer"
 									download={selectedImage.filename}
-									className="px-3 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-md transition-all flex items-center gap-1.5">
+									className="px-3 py-1 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-md transition-all flex items-center gap-1.5">
 									<Download className="w-3.5 h-3.5" /> Download
 								</a>
 								<button
 									type="button"
 									onClick={() => setSelectedImage(null)}
-									className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+									className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
 									<X className="w-5 h-5" />
 								</button>
 							</div>
 						</div>
-						<div className="relative w-full h-[75vh] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 shadow-2xl flex items-center justify-center">
+						<div className="relative w-full h-[75vh] rounded-xl overflow-hidden bg-slate-950 border border-slate-800 shadow-2xl flex items-center justify-center">
 							<Image
 								src={selectedImage.src}
 								alt={selectedImage.filename}

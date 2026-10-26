@@ -658,7 +658,7 @@ export default function RfqTrackerClient({
 	return (
 		<div className="space-y-4">
 			{/* Header */}
-			<div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-4 rounded-2xl border border-slate-800 bg-gradient-to-r from-obsidian-900 via-slate-900 to-obsidian-950">
+			<div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-4 rounded-xl border border-slate-800 bg-gradient-to-r from-obsidian-900 via-slate-900 to-obsidian-950">
 				<div className="flex items-center gap-3">
 					<div className="p-2.5 rounded-xl bg-thermal-500/10 text-thermal-400 border border-thermal-500/20">
 						<FileText className="w-6 h-6" />
@@ -682,14 +682,14 @@ export default function RfqTrackerClient({
 						{canEdit && (
 							<button
 								onClick={handleOpenCreate}
-								className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md transition-all">
+								className="flex items-center gap-2 px-4 py-2 rounded-md text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md transition-all">
 								<Plus className="w-4 h-4 stroke-[2.5]" /> New Enquiry
 							</button>
 						)}
 						{canEdit && (
 							<button
 								onClick={() => setIsImportOpen(true)}
-								className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all">
+								className="flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-semibold bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all">
 								<Upload className="w-4 h-4 text-amber-400" /> Import Excel
 							</button>
 						)}
@@ -697,7 +697,7 @@ export default function RfqTrackerClient({
 							<button
 								onClick={handleSyncInbox}
 								disabled={syncingInbox}
-								className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all disabled:opacity-50">
+								className="flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-semibold bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all disabled:opacity-50">
 								<Mail
 									className={`w-4 h-4 text-cyan-400 ${syncingInbox ? "animate-bounce" : ""}`}
 								/>
@@ -708,13 +708,13 @@ export default function RfqTrackerClient({
 
 					<button
 						onClick={handleExportCsv}
-						className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all">
+						className="flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-semibold bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all">
 						<Download className="w-4 h-4 text-emerald-400" /> Export CSV
 					</button>
 				</div>
 
 				{/* Filters Toolbar with Notification Count Badges */}
-				<div className="glass-card p-4 rounded-2xl border border-slate-800 bg-obsidian-900 space-y-4">
+				<div className="glass-card p-4 rounded-xl border border-slate-800 bg-obsidian-900 space-y-4">
 					<div className="flex flex-col lg:flex-row items-center justify-between gap-4">
 						<div className="flex items-center gap-1.5 p-1 bg-slate-950/60 rounded-xl border border-slate-800 text-xs font-semibold overflow-x-auto max-w-full custom-scrollbar whitespace-nowrap">
 							{[
@@ -763,7 +763,7 @@ export default function RfqTrackerClient({
 										setPage(1);
 										updateUrlParams({ tab: nextTab, page: 1 });
 									}}
-									className={`px-3 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 ${
+									className={`px-3 py-1.5 rounded-md transition-all duration-150 flex items-center gap-1.5 ${
 										tabFilter === tab.key
 											? "bg-cyan-600 text-white font-bold shadow-md shadow-cyan-600/20"
 											: "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
@@ -771,7 +771,7 @@ export default function RfqTrackerClient({
 									<span>{tab.label}</span>
 									{tab.count !== undefined && tab.count > 0 && (
 										<span
-											className={`px-1.5 py-0.2 text-[10px] rounded-full font-bold ${
+											className={`px-1.5 py-0.2 text-[10px] rounded font-bold ${
 												tabFilter === tab.key
 													? "bg-white/20 text-white"
 													: tab.key === "overdue"
@@ -797,7 +797,7 @@ export default function RfqTrackerClient({
 								placeholder="Search by RFQ ID, Company Name, Contact, Email, Item, Offer No..."
 								value={searchInput}
 								onChange={(e) => setSearchInput(e.target.value)}
-								className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
+								className="w-full bg-slate-950 border border-slate-800 rounded-md pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
 							/>
 							{searchInput && (
 								<button
@@ -818,7 +818,7 @@ export default function RfqTrackerClient({
 									setPage(1);
 									updateUrlParams({ assignedTo: val, page: 1 });
 								}}
-								className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 max-w-[160px]">
+								className="bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 max-w-[160px]">
 								<option value="">All Assignees</option>
 								{staffUsers.map((item: DirectoryItem) => (
 									<option
@@ -839,7 +839,7 @@ export default function RfqTrackerClient({
 									setPage(1);
 									updateUrlParams({ status: val, page: 1 });
 								}}
-								className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 max-w-[150px]">
+								className="bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 max-w-[150px]">
 								<option value="">All Statuses</option>
 								{STATUS_OPTIONS.map((opt) => (
 									<option
@@ -863,7 +863,7 @@ export default function RfqTrackerClient({
 										setPage(1);
 										router.replace("/rfq", { scroll: false });
 									}}
-									className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-all whitespace-nowrap"
+									className="flex items-center gap-1.5 px-3 py-2 rounded-md text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-all whitespace-nowrap"
 									title="Reset All Filters">
 									<X className="w-3.5 h-3.5" /> Reset Filters
 								</button>
@@ -873,7 +873,7 @@ export default function RfqTrackerClient({
 				</div>
 
 				{/* High Density Table View */}
-				<div className="glass-card rounded-2xl border border-slate-800 overflow-hidden shadow-2xl">
+				<div className="glass-card rounded-xl border border-slate-800 overflow-hidden shadow-2xl">
 					{loading && enquiries.length === 0 ? (
 						<div className="p-12 text-center text-slate-400 space-y-3">
 							<RefreshCw className="w-8 h-8 text-cyan-400 animate-spin mx-auto" />
@@ -894,7 +894,7 @@ export default function RfqTrackerClient({
 							{canEdit && (
 								<button
 									onClick={handleOpenCreate}
-									className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-md transition-all inline-flex items-center gap-1.5">
+									className="px-4 py-2 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-md transition-all inline-flex items-center gap-1.5">
 									<Plus className="w-4 h-4" /> Create New RFQ
 								</button>
 							)}
@@ -925,7 +925,7 @@ export default function RfqTrackerClient({
 											<td className="py-3.5 px-4 whitespace-nowrap">
 												<Link
 													href={`/rfq/${e.id}`}
-													className="px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-mono font-bold inline-flex items-center gap-1.5 hover:bg-amber-500/20 transition-colors">
+													className="px-2.5 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-mono font-bold inline-flex items-center gap-1.5 hover:bg-amber-500/20 transition-colors">
 													<span>
 														{e.rfqId ||
 															`ENC/RFQ/2026/${String(e.id).padStart(3, "0")}`}
@@ -1041,7 +1041,7 @@ export default function RfqTrackerClient({
 											{/* STATUS */}
 											<td className="py-3.5 px-4 whitespace-nowrap">
 												<span
-													className={`px-3 py-1 rounded-full text-xs font-semibold border inline-flex items-center gap-1.5 ${
+													className={`px-3 py-1 rounded text-xs font-semibold border inline-flex items-center gap-1.5 ${
 														e.status === "Open"
 															? "bg-blue-500/10 text-blue-400 border-blue-500/30"
 															: e.status === "Incomplete"
@@ -1065,7 +1065,7 @@ export default function RfqTrackerClient({
 
 											{/* AGING */}
 											<td className="py-3.5 px-4 whitespace-nowrap">
-												<span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold font-mono">
+												<span className="px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold font-mono">
 													{getAgingDays(
 														e.dateReceived || e.receivedOn || e.createdAt,
 													)}
@@ -1075,7 +1075,7 @@ export default function RfqTrackerClient({
 											{/* OFFER MAPPING */}
 											<td className="py-3.5 px-4 whitespace-nowrap">
 												{e.offerNo ? (
-													<div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/30 font-mono text-xs font-bold">
+													<div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-purple-500/10 text-purple-300 border border-purple-500/30 font-mono text-xs font-bold">
 														<span>{e.offerNo}</span>
 														<button
 															onClick={() => handleOpenMapOfferModal(e)}
@@ -1087,7 +1087,7 @@ export default function RfqTrackerClient({
 												) : (
 													<button
 														onClick={() => handleOpenMapOfferModal(e)}
-														className="px-3 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-semibold inline-flex items-center gap-1 transition-all">
+														className="px-3 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-semibold inline-flex items-center gap-1 transition-all">
 														<Plus className="w-3 h-3 text-cyan-400" /> Map Offer
 													</button>
 												)}
@@ -1101,21 +1101,21 @@ export default function RfqTrackerClient({
 															href={e.driveFolderUrl}
 															target="_blank"
 															rel="noreferrer"
-															className="p-1.5 rounded-lg text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+															className="p-1.5 rounded-md text-emerald-400 hover:bg-emerald-500/10 transition-colors"
 															title="Open Google Drive Folder">
 															<Folder className="w-4 h-4" />
 														</a>
 													)}
 													<Link
 														href={`/rfq/${e.id}`}
-														className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+														className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
 														title="Inspect Workstation">
 														<Eye className="w-4 h-4" />
 													</Link>
 													{canEdit && (
 														<button
 															onClick={() => handleDeleteEnquiry(e.id)}
-															className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+															className="p-1.5 rounded-md text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
 															title="Delete Enquiry">
 															<Trash2 className="w-4 h-4" />
 														</button>
@@ -1168,7 +1168,7 @@ export default function RfqTrackerClient({
 													setPage(1);
 													updateUrlParams({ page: 1, limit: newLimit });
 												}}
-												className="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-xs text-white focus:outline-none">
+												className="bg-slate-900 border border-slate-800 rounded-md px-2 py-1 text-xs text-white focus:outline-none">
 												<option value={10}>10</option>
 												<option value={25}>25</option>
 												<option value={50}>50</option>
@@ -1183,7 +1183,7 @@ export default function RfqTrackerClient({
 													setPage(p);
 													updateUrlParams({ page: p });
 												}}
-												className="px-3 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed border border-slate-800 text-white font-bold">
+												className="px-3 py-1 rounded-md bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed border border-slate-800 text-white font-bold">
 												Previous
 											</button>
 
@@ -1206,7 +1206,7 @@ export default function RfqTrackerClient({
 																setPage(pageNum);
 																updateUrlParams({ page: pageNum });
 															}}
-															className={`w-7 h-7 rounded-lg text-xs font-bold font-mono transition-all ${
+															className={`w-7 h-7 rounded-md text-xs font-bold font-mono transition-all ${
 																activePage === pageNum
 																	? "bg-cyan-600 text-white shadow-md shadow-cyan-600/20"
 																	: "bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800"
@@ -1224,7 +1224,7 @@ export default function RfqTrackerClient({
 													setPage(p);
 													updateUrlParams({ page: p });
 												}}
-												className="px-3 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed border border-slate-800 text-white font-bold">
+												className="px-3 py-1 rounded-md bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed border border-slate-800 text-white font-bold">
 												Next
 											</button>
 										</div>
@@ -1238,7 +1238,7 @@ export default function RfqTrackerClient({
 			{/* QUICK MAP OFFER MODAL */}
 			{isOfferModalOpen && offerMappingTarget && (
 				<div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-					<div className="glass-card bg-obsidian-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+					<div className="glass-card bg-obsidian-900 border border-slate-800 rounded-xl w-full max-w-md p-6 space-y-4 shadow-2xl">
 						<div className="flex items-center justify-between border-b border-slate-800 pb-3">
 							<h3 className="text-sm font-bold text-white flex items-center gap-2">
 								<Tag className="w-4 h-4 text-cyan-400" /> Map Offer Document to
@@ -1260,7 +1260,7 @@ export default function RfqTrackerClient({
 									placeholder="e.g. ENC/OFR/2026/044"
 									value={offerNoInput}
 									onChange={(e) => setOfferNoInput(e.target.value)}
-									className="w-full bg-slate-950 border border-indigo-900/80 rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none font-mono"
+									className="w-full bg-slate-950 border border-indigo-900/80 rounded-md px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none font-mono"
 								/>
 							</div>
 							<div>
@@ -1271,19 +1271,19 @@ export default function RfqTrackerClient({
 									type="date"
 									value={offerDateInput}
 									onChange={(e) => setOfferDateInput(e.target.value)}
-									className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
+									className="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
 								/>
 							</div>
 							<div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
 								<button
 									type="button"
 									onClick={() => setIsOfferModalOpen(false)}
-									className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white">
+									className="px-4 py-2 rounded-md text-xs font-semibold text-slate-400 hover:text-white">
 									Cancel
 								</button>
 								<button
 									type="submit"
-									className="px-5 py-2 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md transition-all">
+									className="px-5 py-2 rounded-md text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md transition-all">
 									Save Offer Mapping
 								</button>
 							</div>
@@ -1295,7 +1295,7 @@ export default function RfqTrackerClient({
 			{/* ASSIGNEE DIRECTORY MODAL */}
 			{isDirectoryOpen && (
 				<div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-					<div className="glass-card bg-obsidian-900 border border-slate-800 rounded-2xl w-full max-w-xl p-6 space-y-4 shadow-2xl">
+					<div className="glass-card bg-obsidian-900 border border-slate-800 rounded-xl w-full max-w-xl p-6 space-y-4 shadow-2xl">
 						<div className="flex items-center justify-between border-b border-slate-800 pb-3">
 							<div>
 								<h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -1313,7 +1313,7 @@ export default function RfqTrackerClient({
 										setIsDirectoryOpen(false);
 										router.push("/users");
 									}}
-									className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 transition-all flex items-center gap-1">
+									className="px-3 py-1.5 rounded-md text-xs font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 transition-all flex items-center gap-1">
 									<Users className="w-3.5 h-3.5" /> Open User Mgmt
 								</button>
 								<button
@@ -1337,7 +1337,7 @@ export default function RfqTrackerClient({
 											updated[idx].name = e.target.value;
 											setDirectoryItems(updated);
 										}}
-										className="w-1/2 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none"
+										className="w-1/2 bg-slate-900 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-white focus:outline-none"
 									/>
 									<input
 										type="email"
@@ -1348,7 +1348,7 @@ export default function RfqTrackerClient({
 											updated[idx].email = e.target.value;
 											setDirectoryItems(updated);
 										}}
-										className="w-1/2 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none"
+										className="w-1/2 bg-slate-900 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-white focus:outline-none"
 									/>
 								</div>
 							))}
@@ -1362,20 +1362,20 @@ export default function RfqTrackerClient({
 										{ name: "", email: "" },
 									])
 								}
-								className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-slate-700">
+								className="px-3 py-1.5 rounded-md text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-slate-700">
 								+ Add Member
 							</button>
 							<div className="flex items-center gap-2">
 								<button
 									type="button"
 									onClick={() => setIsDirectoryOpen(false)}
-									className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white">
+									className="px-4 py-2 rounded-md text-xs font-semibold text-slate-400 hover:text-white">
 									Cancel
 								</button>
 								<button
 									onClick={handleSaveDirectory}
 									disabled={directorySaving}
-									className="px-5 py-2 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md transition-all">
+									className="px-5 py-2 rounded-md text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md transition-all">
 									{directorySaving ? "Saving..." : "Save Directory"}
 								</button>
 							</div>
@@ -1387,7 +1387,7 @@ export default function RfqTrackerClient({
 			{/* IMPORT EXCEL MODAL */}
 			{isImportOpen && (
 				<div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-					<div className="glass-card bg-obsidian-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+					<div className="glass-card bg-obsidian-900 border border-slate-800 rounded-xl w-full max-w-md p-6 space-y-4 shadow-2xl">
 						<div className="flex items-center justify-between border-b border-slate-800 pb-3">
 							<h3 className="text-sm font-bold text-white flex items-center gap-2">
 								<Upload className="w-4 h-4 text-amber-400" /> Import Enquiries
@@ -1408,19 +1408,19 @@ export default function RfqTrackerClient({
 								accept=".xlsx, .xls"
 								required
 								onChange={(e) => setImportFile(e.target.files?.[0] || null)}
-								className="text-xs text-slate-300 block w-full file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-amber-400 hover:file:bg-slate-700"
+								className="text-xs text-slate-300 block w-full file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-amber-400 hover:file:bg-slate-700"
 							/>
 							<div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
 								<button
 									type="button"
 									onClick={() => setIsImportOpen(false)}
-									className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white">
+									className="px-4 py-2 rounded-md text-xs font-semibold text-slate-400 hover:text-white">
 									Cancel
 								</button>
 								<button
 									type="submit"
 									disabled={importing}
-									className="px-5 py-2 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md transition-all">
+									className="px-5 py-2 rounded-md text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md transition-all">
 									{importing ? "Importing..." : "Upload & Import"}
 								</button>
 							</div>
@@ -1432,7 +1432,7 @@ export default function RfqTrackerClient({
 			{/* FOLLOW-UP & REMARK HISTORY MODAL */}
 			{historyTargetEnquiry && (
 				<div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-					<div className="glass-card bg-obsidian-900 border border-slate-800 rounded-2xl w-full max-w-2xl p-6 space-y-4 shadow-2xl">
+					<div className="glass-card bg-obsidian-900 border border-slate-800 rounded-xl w-full max-w-2xl p-6 space-y-4 shadow-2xl">
 						<div className="flex items-center justify-between border-b border-slate-800 pb-3">
 							<div>
 								<h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -1489,12 +1489,12 @@ export default function RfqTrackerClient({
 										placeholder={`Enter ${historyModalType.toLowerCase()} discussion details...`}
 										value={historyModalNote}
 										onChange={(e) => setHistoryModalNote(e.target.value)}
-										className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:border-cyan-500 focus:outline-none"
+										className="flex-1 bg-slate-900 border border-slate-800 rounded-md px-3 py-1.5 text-xs text-white focus:border-cyan-500 focus:outline-none"
 									/>
 									<button
 										type="submit"
 										disabled={historySaving}
-										className="px-3 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs whitespace-nowrap">
+										className="px-3 py-1.5 rounded-md text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-xs whitespace-nowrap">
 										{historySaving ? "Saving..." : "Add Log"}
 									</button>
 								</div>
@@ -1591,7 +1591,7 @@ export default function RfqTrackerClient({
 							<button
 								type="button"
 								onClick={() => setHistoryTargetEnquiry(null)}
-								className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800">
+								className="px-4 py-2 rounded-md text-xs font-semibold text-slate-300 hover:text-white bg-slate-800">
 								Close
 							</button>
 						</div>

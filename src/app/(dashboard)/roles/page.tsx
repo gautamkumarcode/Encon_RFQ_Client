@@ -222,7 +222,7 @@ export default function RoleManagementPage() {
   return (
     <div className="space-y-4">
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 glass-card p-4 rounded-2xl border border-slate-800 shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 glass-card p-4 rounded-xl border border-slate-800 shadow-xl">
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-xl bg-thermal-500/10 border border-thermal-500/30 text-thermal-400">
             <ShieldAlert className="w-5 h-5" />
@@ -240,7 +240,7 @@ export default function RoleManagementPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
+            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs rounded-md flex items-center gap-1.5 transition-all shadow-sm"
           >
             <Plus className="w-4 h-4 text-thermal-400" /> New Role
           </button>
@@ -249,7 +249,7 @@ export default function RoleManagementPage() {
             <button
               onClick={() => savePermissionsMutation.mutate()}
               disabled={savePermissionsMutation.isPending}
-              className="px-4 py-1.5 bg-thermal-500 hover:bg-thermal-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all"
+              className="px-4 py-1.5 bg-thermal-500 hover:bg-thermal-600 text-white font-bold text-xs rounded-md shadow-md flex items-center gap-1.5 transition-all"
             >
               <Save className="w-4 h-4" /> {savePermissionsMutation.isPending ? 'Saving...' : 'Save Matrix'}
             </button>
@@ -309,7 +309,7 @@ export default function RoleManagementPage() {
 
       {/* PERMISSION MATRIX */}
       {activeRole && (
-        <div className="glass-card rounded-2xl p-4 border border-slate-800 space-y-4 shadow-xl">
+        <div className="glass-card rounded-xl p-4 border border-slate-800 space-y-4 shadow-xl">
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <div>
               <h2 className="text-sm font-bold text-white flex items-center gap-2">
@@ -329,7 +329,7 @@ export default function RoleManagementPage() {
                     const anyClosed = sections.some((s) => !openSections[s.cat]);
                     setOpenSections(Object.fromEntries(sections.map((s) => [s.cat, anyClosed])));
                   }}
-                  className="px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-400 border border-slate-800 bg-slate-950 hover:text-white hover:border-slate-700 flex items-center gap-1.5 transition-colors"
+                  className="px-2.5 py-1 rounded-md text-[10px] font-bold text-slate-400 border border-slate-800 bg-slate-950 hover:text-white hover:border-slate-700 flex items-center gap-1.5 transition-colors"
                 >
                   <ChevronsUpDown className="w-3.5 h-3.5" />
                   {sections.some((s) => !openSections[s.cat]) ? 'Expand all' : 'Collapse all'}
@@ -459,7 +459,7 @@ export default function RoleManagementPage() {
       {/* CREATE NEW ROLE MODAL */}
       {isCreateOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-card bg-obsidian-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+          <div className="glass-card bg-obsidian-900 border border-slate-800 rounded-xl w-full max-w-md p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Plus className="w-4 h-4 text-thermal-400" /> Create Custom Role
@@ -484,7 +484,7 @@ export default function RoleManagementPage() {
                   placeholder="e.g. COSTING_ENGINEER"
                   value={newRoleName}
                   onChange={(e) => setNewRoleName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white uppercase placeholder-slate-500 focus:outline-none focus:border-thermal-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white uppercase placeholder-slate-500 focus:outline-none focus:border-thermal-500"
                 />
               </div>
 
@@ -495,7 +495,7 @@ export default function RoleManagementPage() {
                   placeholder="Describe responsibility & module access for this role..."
                   value={newRoleDesc}
                   onChange={(e) => setNewRoleDesc(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
                 />
               </div>
 
@@ -503,14 +503,14 @@ export default function RoleManagementPage() {
                 <button
                   type="button"
                   onClick={() => setIsCreateOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+                  className="px-4 py-2 rounded-md text-xs font-semibold text-slate-400 hover:text-white"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createRoleMutation.isPending}
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-thermal-500 hover:bg-thermal-600 text-white shadow-md transition-all"
+                  className="px-5 py-2 rounded-md text-xs font-bold bg-thermal-500 hover:bg-thermal-600 text-white shadow-md transition-all"
                 >
                   {createRoleMutation.isPending ? 'Creating...' : 'Create Role'}
                 </button>

@@ -446,7 +446,7 @@ export default function TallyBooksPage() {
         <button
           onClick={() => (isRegister ? vRefetch() : refetch())}
           disabled={isRegister ? vFetching : isRefetching}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:border-slate-600 hover:text-slate-100 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:border-slate-600 hover:text-slate-100 disabled:opacity-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${(isRegister ? vFetching : isRefetching) ? 'animate-spin' : ''}`} />
           Refresh
@@ -478,7 +478,7 @@ export default function TallyBooksPage() {
 
       {/* Tabs + search */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="inline-flex items-center gap-1 self-start rounded-lg border border-slate-800 bg-slate-900/60 p-1">
+        <div className="inline-flex items-center gap-1 self-start rounded-md border border-slate-800 bg-slate-900/60 p-1">
           {TABS.map((t) => {
             const Icon = t.icon;
             const active = tab === t.key;
@@ -518,7 +518,7 @@ export default function TallyBooksPage() {
               placeholder="Search party"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-slate-800 bg-slate-900/60 py-2 pl-9 pr-3 text-xs text-slate-200 placeholder:text-slate-600 focus:border-thermal-500/60 focus:outline-none focus:ring-1 focus:ring-thermal-500/40"
+              className="w-full rounded-md border border-slate-800 bg-slate-900/60 py-2 pl-9 pr-3 text-xs text-slate-200 placeholder:text-slate-600 focus:border-thermal-500/60 focus:outline-none focus:ring-1 focus:ring-thermal-500/40"
             />
           </div>
         </div>

@@ -20,13 +20,13 @@ export default function FilterBar({ search, onSearch, status, onStatus }: Props)
           placeholder="Search party / PO / job no"
           value={search}
           onChange={(e) => onSearch(e.target.value)}
-          className="w-full rounded-lg border border-slate-800 bg-slate-900/60 py-2 pl-9 pr-3 text-xs text-slate-200 placeholder:text-slate-600 focus:border-thermal-500/60 focus:outline-none focus:ring-1 focus:ring-thermal-500/40"
+          className="w-full rounded-md border border-slate-800 bg-slate-900/60 py-2 pl-9 pr-3 text-xs text-slate-200 placeholder:text-slate-600 focus:border-thermal-500/60 focus:outline-none focus:ring-1 focus:ring-thermal-500/40"
         />
       </div>
       <select
         value={status}
         onChange={(e) => onStatus(e.target.value)}
-        className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-thermal-500/60 focus:outline-none"
+        className="rounded-md border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-thermal-500/60 focus:outline-none"
       >
         <option value="">All Statuses</option>
         {ORDER_STATUS.map((s) => (

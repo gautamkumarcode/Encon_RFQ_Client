@@ -54,7 +54,7 @@ export default function NotificationsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="glass-card p-6 rounded-3xl border border-slate-800">
+      <div className="glass-card p-6 rounded-xl border border-slate-800">
         <h1 className="text-xl font-extrabold text-white flex items-center gap-2">
           <Bell className="w-5 h-5 text-thermal-500" /> Notifications & Broadcast Center
         </h1>
@@ -67,18 +67,18 @@ export default function NotificationsPage() {
         {/* Main Notifications List */}
         <div className="lg:col-span-2 space-y-3">
           {isLoading ? (
-            <div className="p-8 text-center text-xs text-slate-400 glass-card rounded-2xl">
+            <div className="p-8 text-center text-xs text-slate-400 glass-card rounded-xl">
               Loading notifications...
             </div>
           ) : notifications.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400 glass-card rounded-2xl">
+            <div className="p-8 text-center text-xs text-slate-400 glass-card rounded-xl">
               No notifications available
             </div>
           ) : (
             notifications.map((n) => (
               <div
                 key={n.id}
-                className={`p-4 rounded-2xl border glass-card transition-all flex items-start justify-between gap-3 ${
+                className={`p-4 rounded-xl border glass-card transition-all flex items-start justify-between gap-3 ${
                   n.isRead ? 'border-slate-800 text-slate-400' : 'border-thermal-500/40 text-white'
                 }`}
               >
@@ -109,7 +109,7 @@ export default function NotificationsPage() {
                 {!n.isRead && (
                   <button
                     onClick={() => markReadMutation.mutate(n.id)}
-                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition-colors"
+                    className="p-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition-colors"
                     title="Mark as read"
                   >
                     <CheckCircle className="w-4 h-4 text-emerald-400" />
@@ -122,7 +122,7 @@ export default function NotificationsPage() {
 
         {/* Publish Announcement Form (Admin / Director Only) */}
         {['ADMIN', 'CO', 'GM', 'PRODUCTION_HEAD'].includes((user?.role || '').toUpperCase()) && (
-          <div className="glass-card p-6 rounded-3xl border border-slate-800 space-y-4">
+          <div className="glass-card p-6 rounded-xl border border-slate-800 space-y-4">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <Megaphone className="w-4 h-4 text-thermal-500" /> Broadcast System Announcement
             </h3>
@@ -141,7 +141,7 @@ export default function NotificationsPage() {
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-thermal-500"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-md text-xs text-white focus:outline-none focus:border-thermal-500"
                   placeholder="Announcement Title"
                 />
               </div>
@@ -151,7 +151,7 @@ export default function NotificationsPage() {
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-thermal-500"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-md text-xs text-white focus:outline-none focus:border-thermal-500"
                 >
                   <option value="ANNOUNCEMENT">ANNOUNCEMENT</option>
                   <option value="ALERT">ALERT</option>
@@ -166,7 +166,7 @@ export default function NotificationsPage() {
                   rows={3}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-thermal-500"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-md text-xs text-white focus:outline-none focus:border-thermal-500"
                   placeholder="Detailed announcement details..."
                 />
               </div>
@@ -174,7 +174,7 @@ export default function NotificationsPage() {
               <button
                 type="submit"
                 disabled={createAnnouncementMutation.isPending}
-                className="w-full py-2.5 bg-gradient-to-r from-thermal-600 to-thermal-500 hover:from-thermal-500 hover:to-amber-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2"
+                className="w-full py-2.5 bg-gradient-to-r from-thermal-600 to-thermal-500 hover:from-thermal-500 hover:to-amber-500 text-white font-bold text-xs rounded-md shadow-lg flex items-center justify-center gap-2"
               >
                 <Send className="w-3.5 h-3.5" /> Broadcast Announcement
               </button>

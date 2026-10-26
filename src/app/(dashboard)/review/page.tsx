@@ -82,7 +82,7 @@ export default function ReviewDashboardPage() {
   return (
     <div className="space-y-4">
       {/* BRAND CONSTANT TOP HEADER */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 glass-card p-4 rounded-2xl border border-slate-800 shadow-xl">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 glass-card p-4 rounded-xl border border-slate-800 shadow-xl">
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-xl bg-thermal-500/10 border border-thermal-500/30 text-thermal-400">
             <CheckSquare className="w-5 h-5" />
@@ -104,19 +104,19 @@ export default function ReviewDashboardPage() {
               placeholder="Search reviews..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500 transition-all"
+              className="w-full bg-slate-950 border border-slate-800 rounded-md pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500 transition-all"
             />
           </div>
         </div>
       </div>
 
       {/* BRAND TAB NAVIGATION */}
-      <div className="flex items-center justify-between gap-3 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
+      <div className="flex items-center justify-between gap-3 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => setTab('pending')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 ${
               tab === 'pending'
                 ? 'bg-thermal-500 text-white shadow-md'
                 : 'text-slate-400 hover:text-white hover:bg-slate-900'
@@ -124,7 +124,7 @@ export default function ReviewDashboardPage() {
           >
             <Clock className="w-3.5 h-3.5" />
             Pending Review & Approval
-            <span className="ml-1 px-1.5 py-0.2 text-[10px] rounded-full bg-slate-900 text-thermal-400 border border-thermal-500/30 font-extrabold">
+            <span className="ml-1 px-1.5 py-0.2 text-[10px] rounded bg-slate-900 text-thermal-400 border border-thermal-500/30 font-extrabold">
               {pendingEnquiries.length}
             </span>
           </button>
@@ -132,7 +132,7 @@ export default function ReviewDashboardPage() {
           <button
             type="button"
             onClick={() => setTab('approved')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 ${
               tab === 'approved'
                 ? 'bg-slate-800 text-white border border-slate-700 shadow-md'
                 : 'text-slate-400 hover:text-white hover:bg-slate-900'
@@ -140,7 +140,7 @@ export default function ReviewDashboardPage() {
           >
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
             Approved Offers
-            <span className="ml-1 px-1.5 py-0.2 text-[10px] rounded-full bg-slate-900 text-slate-300 font-extrabold">
+            <span className="ml-1 px-1.5 py-0.2 text-[10px] rounded bg-slate-900 text-slate-300 font-extrabold">
               {approvedEnquiries.length}
             </span>
           </button>
@@ -148,7 +148,7 @@ export default function ReviewDashboardPage() {
       </div>
 
       {/* HIGH-DENSITY REVIEW TABLE WITH BRAND COLOR SCHEME */}
-      <div className="glass-card rounded-2xl border border-slate-800 overflow-hidden shadow-2xl">
+      <div className="glass-card rounded-xl border border-slate-800 overflow-hidden shadow-2xl">
         {isLoading ? (
           <div className="p-8 text-center text-slate-400 space-y-2">
             <Clock className="w-6 h-6 text-thermal-500 animate-spin mx-auto" />
@@ -262,23 +262,23 @@ export default function ReviewDashboardPage() {
                       {/* STATUS BADGE */}
                       <td className="py-3 px-4 text-center whitespace-nowrap">
                         {st === 'approved' ? (
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1">
+                          <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Approved
                           </span>
                         ) : st === 'verified' ? (
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20 inline-flex items-center gap-1">
+                          <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20 inline-flex items-center gap-1">
                             <UserCheck className="w-3 h-3 text-purple-400" /> Verified by {enquiry.verifiedBy || 'Reviewer'}
                           </span>
                         ) : st === 'offer sent' ? (
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 inline-flex items-center gap-1">
+                          <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 inline-flex items-center gap-1">
                             <Send className="w-3 h-3 text-indigo-400" /> Offer Sent
                           </span>
                         ) : st === 'po received' ? (
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 inline-flex items-center gap-1">
+                          <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 inline-flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3 text-cyan-400" /> PO Received
                           </span>
                         ) : (
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 inline-flex items-center gap-1">
+                          <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 inline-flex items-center gap-1">
                             <Clock className="w-3 h-3 text-amber-400" /> Under Review
                           </span>
                         )}
@@ -288,7 +288,7 @@ export default function ReviewDashboardPage() {
                       <td className="py-3 px-4 text-right whitespace-nowrap">
                         <Link
                           href={`/review/${enquiry.id}`}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-md ${
+                          className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all inline-flex items-center gap-1 shadow-md ${
                             st === 'verified'
                               ? 'bg-purple-600 hover:bg-purple-500 text-white'
                               : 'bg-thermal-500 hover:bg-thermal-600 text-white'

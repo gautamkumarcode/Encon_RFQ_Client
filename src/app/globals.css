@@ -5,13 +5,13 @@
 
 @layer base {
   :root {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 216 37% 6%;   /* #0a0e16 - app background */
+    --foreground: 218 28% 92%;  /* #e6eaf2 - primary text */
   }
 
   body {
-    background-color: #0b0f17;
-    color: #f3f4f6;
+    background-color: #0a0e16;
+    color: #e6eaf2;
     font-family: 'Inter', var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
@@ -21,22 +21,22 @@
 
 /* ─── Light Mode Theme System ─── */
 html.light body {
-  background-color: #f8fafc !important;
+  background-color: #f5f7fa !important;
   color: #0f172a !important;
 }
 
 html.light header {
   background-color: #ffffff !important;
-  border-bottom-color: #e2e8f0 !important;
+  border-bottom-color: #e3e8ef !important;
 }
 
 html.light aside {
   background-color: #ffffff !important;
-  border-right-color: #e2e8f0 !important;
+  border-right-color: #e3e8ef !important;
 }
 
 html.light main {
-  background-color: #f8fafc !important;
+  background-color: #f5f7fa !important;
 }
 
 /* Neutralize dark backgrounds & gradients in light mode */
@@ -61,8 +61,8 @@ html.light [class*="via-slate-"] {
 /* Tab bar pill containers in light mode */
 html.light .p-1[class*="bg-slate-"],
 html.light .p-1[class*="bg-obsidian-"] {
-  background-color: #e2e8f0 !important;
-  border-color: #cbd5e1 !important;
+  background-color: #e9edf3 !important;
+  border-color: #d6dce5 !important;
 }
 
 html.light .p-1[class*="bg-slate-"] button,
@@ -86,8 +86,8 @@ html.light .p-1[class*="bg-obsidian-"] button.bg-indigo-600 {
 
 html.light .glass-card {
   background: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05) !important;
+  border-color: #e3e8ef !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
   backdrop-filter: none !important;
 }
 
@@ -96,21 +96,21 @@ html.light .bg-slate-800\/80,
 html.light .bg-slate-800\/60,
 html.light .bg-slate-800\/40,
 html.light .bg-slate-800\/50 {
-  background-color: #f1f5f9 !important;
+  background-color: #f1f4f9 !important;
 }
 
 html.light .hover\:bg-slate-800\/60:hover,
 html.light .hover\:bg-slate-800\/50:hover,
 html.light .hover\:bg-slate-800:hover,
 html.light .hover\:bg-slate-700:hover {
-  background-color: #e2e8f0 !important;
+  background-color: #e6ebf2 !important;
 }
 
 /* Borders */
 html.light [class*="border-slate-800"],
 html.light [class*="border-slate-700"],
 html.light [class*="border-slate-900"] {
-  border-color: #e2e8f0 !important;
+  border-color: #e3e8ef !important;
 }
 
 /* Text Colors */
@@ -129,24 +129,87 @@ html.light .text-slate-500 {
   color: #64748b !important;
 }
 
+/* Accent text tuned for dark surfaces → darken to WCAG-safe tones on light */
+html.light .text-thermal-300,
+html.light .text-thermal-400,
+html.light .text-orange-400 {
+  color: #c2410c !important; /* thermal-700 */
+}
+
+html.light .text-amber-300,
+html.light .text-amber-400 {
+  color: #b45309 !important; /* amber-700 */
+}
+
+html.light .text-emerald-300,
+html.light .text-emerald-400 {
+  color: #047857 !important; /* emerald-700 */
+}
+
+html.light .text-cyan-300,
+html.light .text-cyan-400 {
+  color: #0e7490 !important; /* cyan-700 */
+}
+
+html.light .text-rose-300,
+html.light .text-rose-400 {
+  color: #be123c !important; /* rose-700 */
+}
+
+html.light .text-purple-300,
+html.light .text-purple-400 {
+  color: #7e22ce !important; /* purple-700 */
+}
+
+html.light .text-indigo-400 {
+  color: #4338ca !important; /* indigo-700 */
+}
+
+html.light .text-blue-400,
+html.light .text-sky-400 {
+  color: #0369a1 !important; /* sky-700 */
+}
+
+/* Primary thermal actions keep white labels on light mode */
+html.light .bg-thermal-500,
+html.light .bg-thermal-600 {
+  color: #ffffff !important;
+}
+
+html.light .bg-thermal-500 span,
+html.light .bg-thermal-600 span {
+  color: #ffffff !important;
+}
+
+/* Branded gradient CTAs stay branded in light mode (exempt from the neutralizer) */
+html.light [class*="bg-gradient-"][class*="from-thermal-"] {
+  background-image: linear-gradient(135deg, #ea580c 0%, #f97316 100%) !important;
+  background-color: transparent !important;
+}
+
+html.light [class*="bg-gradient-"][class*="from-thermal-"],
+html.light [class*="bg-gradient-"][class*="from-thermal-"] span {
+  color: #ffffff !important;
+}
+
 /* Tables */
 html.light table {
   background-color: #ffffff !important;
 }
 
 html.light th {
-  background-color: #f8fafc !important;
+  background-color: #f5f7fa !important;
   color: #475569 !important;
-  border-color: #e2e8f0 !important;
+  border-color: #e3e8ef !important;
 }
 
 html.light td {
-  border-color: #f1f5f9 !important;
+  border-color: #eef1f6 !important;
   color: #1e293b !important;
 }
 
 html.light tr:hover {
-  background-color: #f8fafc !important;
+  background-color: #f5f7fa !important;
 }
 
 /* Form Inputs, Selects & Buttons */
@@ -176,11 +239,11 @@ html.light .fixed.inset-0.bg-black\/70 {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0b0f17;
+  background: #0a0e16;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1f2937;
+  background: #1f2a3c;
   border-radius: 3px;
 }
 
@@ -189,7 +252,7 @@ html.light .fixed.inset-0.bg-black\/70 {
 }
 
 html.light ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #eef1f6;
 }
 
 html.light ::-webkit-scrollbar-thumb {
@@ -200,10 +263,10 @@ html.light ::-webkit-scrollbar-thumb:hover {
   background: #f97316;
 }
 
-/* Professional Enterprise Glass-Card Surface */
+/* Professional Enterprise Surface — 3-level hierarchy: bg #0a0e16 → surface #111927 → hairline #1f2a3c */
 .glass-card {
-  background: #0f172a;
-  border: 1px solid #1e293b;
+  background: #111927;
+  border: 1px solid #1f2a3c;
 }
 
 .glass-card-hover {
@@ -211,13 +274,13 @@ html.light ::-webkit-scrollbar-thumb:hover {
 }
 
 .glass-card-hover:hover {
-  border-color: #334155;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  border-color: #2b3a52;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* ─── High Contrast Enterprise Badges for Light & Dark Mode ─── */
 .item-code-badge {
-  background-color: #0f172a !important;
+  background-color: #0a0e16 !important;
   color: #38bdf8 !important;
   border: 1px solid #0284c7 !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;

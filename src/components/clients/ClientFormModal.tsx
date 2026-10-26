@@ -30,7 +30,7 @@ export default function ClientFormModal({
 }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm">
-      <div className="my-8 w-full max-w-3xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl">
+      <div className="my-8 w-full max-w-3xl rounded-xl border border-slate-800 bg-slate-900 shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-800 px-5 py-3">
           <h2 className="flex items-center gap-2 text-sm font-bold text-white">
             <Building2 className="h-4 w-4 text-thermal-400" /> {isNew ? 'New Client' : 'Edit Client'}
@@ -85,13 +85,13 @@ export default function ClientFormModal({
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-slate-800 px-5 py-3">
-          <button onClick={onClose} className="rounded-lg border border-slate-700 px-4 py-2 text-xs font-medium text-slate-300 hover:border-slate-600">
+          <button onClick={onClose} className="rounded-md border border-slate-700 px-4 py-2 text-xs font-medium text-slate-300 hover:border-slate-600">
             Cancel
           </button>
           <button
             onClick={onSubmit}
             disabled={saving || !form.name.trim()}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-thermal-500 px-4 py-2 text-xs font-semibold text-white hover:bg-thermal-400 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md bg-thermal-500 px-4 py-2 text-xs font-semibold text-white hover:bg-thermal-400 disabled:opacity-50"
           >
             {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />} {isNew ? 'Create Client' : 'Save Changes'}
           </button>
