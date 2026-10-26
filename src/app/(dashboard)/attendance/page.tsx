@@ -1,18 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../../services/api';
 import { useNotification } from '../../../context/NotificationContext';
 import { useAuth } from '../../../context/AuthContext';
 import RequirePermission from '../../../components/auth/RequirePermission';
-import { CalendarClock, Search, Edit2, Trash2, X } from 'lucide-react';
+import AttendanceDetailsModal, { PunchDetail } from '../../../components/hr/AttendanceDetailsModal';
+import EmployeeSummaryTable, { buildEmployeeSummary } from '../../../components/hr/EmployeeSummaryTable';
+import AttendanceCalendar, { monthKey } from '../../../components/hr/AttendanceCalendar';
+import HolidayManager, { Holiday } from '../../../components/hr/HolidayManager';
+import { CalendarClock, Search, Edit2, Trash2, X, Eye, CalendarDays, List, CalendarRange, PartyPopper, Download } from 'lucide-react';
 
-interface Punch {
-  time?: string | null;
-  geofenceOk?: boolean;
-  address?: string;
-}
+interface Punch extends PunchDetail {}
 interface AttendanceRow {
   id: string;
   userId: string;
@@ -25,6 +25,7 @@ interface AttendanceRow {
   clockIn: Punch;
   clockOut: Punch;
   totalWorkMinutes: number | null;
+  source?: string;
   remark: string;
 }
 
@@ -52,6 +53,13 @@ function isoDaysAgo(n: number) {
   return d.toISOString().slice(0, 10);
 }
 
+/** First day of the current month -> today, as ISO date strings. */
+function thisMonthRange() {
+  const now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth(), 1);
+  return { from: first.toISOString().slice(0, 10), to: now.toISOString().slice(0, 10) };
+}
+
 export default function AttendancePage() {
   return (
     <RequirePermission module="HR_ATTENDANCE" action="READ">
@@ -70,13 +78,32 @@ function AttendanceContent() {
   const [officeFilter, setOfficeFilter] = useState('');
   const [search, setSearch] = useState('');
   const [edit, setEdit] = useState<AttendanceRow | null>(null);
+  const [view, setView] = useState<AttendanceRow | null>(null);
+  // 'log' = day-by-day rows, 'summary' = one row per employee, 'calendar' = month grid.
+  const [tab, setTab] = useState<'log' | 'summary' | 'calendar'>('log');
+  // Set when drilling into an employee from the summary tab.
+  const [person, setPerson] = useState('');
+  const [calMonth, setCalMonth] = useState(monthKey());
+  const [showHolidays, setShowHolidays] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  // In calendar mode the query range follows the visible month, not the From/To inputs.
+  const calRange = useMemo(() => {
+    const [yy, mm] = calMonth.split('-').map(Number);
+    return {
+      from: `${calMonth}-01`,
+      to: new Date(Date.UTC(yy, mm - 1, new Date(yy, mm, 0).getDate())).toISOString().slice(0, 10),
+    };
+  }, [calMonth]);
+  const effFrom = tab === 'calendar' ? calRange.from : from;
+  const effTo = tab === 'calendar' ? calRange.to : to;
 
   const { data: rows = [], isLoading } = useQuery<AttendanceRow[]>({
-    queryKey: ['attendance-register', from, to, officeFilter],
+    queryKey: ['attendance-register', effFrom, effTo, officeFilter],
     queryFn: async () =>
       (
         await api.get('/attendance/register', {
-          params: { from, to, officeId: officeFilter || undefined },
+          params: { from: effFrom, to: effTo, officeId: officeFilter || undefined },
         })
       ).data.data,
   });
@@ -86,8 +113,21 @@ function AttendanceContent() {
     queryFn: async () => (await api.get('/offices')).data.data,
   });
 
+  // Holidays for the visible range; office-specific ones included when filtering.
+  const { data: holidays = [] } = useQuery<Holiday[]>({
+    queryKey: ['holidays', effFrom, effTo, officeFilter],
+    queryFn: async () =>
+      (
+        await api.get('/holidays', {
+          params: { from: effFrom, to: effTo, officeId: officeFilter || undefined },
+        })
+      ).data.data,
+  });
+
   const canWrite = hasPermission('HR_ATTENDANCE', 'WRITE');
   const canDelete = hasPermission('HR_ATTENDANCE', 'DELETE');
+  const canManageHolidays = hasPermission('HR_HOLIDAYS', 'WRITE');
+  const canDeleteHolidays = hasPermission('HR_HOLIDAYS', 'DELETE');
 
   const updateMutation = useMutation({
     mutationFn: async (payload: any) => (await api.put(`/attendance/${payload.id}`, payload)).data,
@@ -111,8 +151,43 @@ function AttendanceContent() {
   });
 
   const filtered = rows.filter(
-    (r) => !search || `${r.userName} ${r.userEmail}`.toLowerCase().includes(search.toLowerCase()),
+    (r) =>
+      (!person || r.userId === person) &&
+      (!search || `${r.userName} ${r.userEmail}`.toLowerCase().includes(search.toLowerCase())),
   );
+
+  const summary = useMemo(() => buildEmployeeSummary(filtered), [filtered]);
+  const personName = person ? rows.find((r) => r.userId === person)?.userName || 'Employee' : '';
+
+  // Download the monthly report as .xlsx. Sends the exact filters currently
+  // on screen (range, office, drilled-in employee) so file matches the view.
+  async function exportReport() {
+    setExporting(true);
+    try {
+      const r = await api.get('/attendance/export', {
+        params: { from: effFrom, to: effTo, officeId: officeFilter || undefined, userId: person || undefined },
+        responseType: 'blob',
+      });
+      const blob = new Blob([r.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = window.URL.createObjectURL(blob);
+      const cd = String(r.headers?.['content-disposition'] ?? '');
+      const fn = cd.match(/filename="?([^"]+)"?/)?.[1] || `encon_attendance_${effFrom}_to_${effTo}.xlsx`;
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fn;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      showToast('Export Ready', fn, 'success');
+    } catch {
+      showToast('Error', 'Failed to export report', 'error');
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -146,6 +221,17 @@ function AttendanceContent() {
               ))}
             </select>
           </div>
+          <button
+            onClick={() => {
+              const m = thisMonthRange();
+              setFrom(m.from);
+              setTo(m.to);
+            }}
+            className="px-3 py-2 rounded-xl text-[11px] font-bold bg-thermal-500/10 text-thermal-400 border border-thermal-500/30 hover:bg-thermal-500/20 flex items-center gap-1.5"
+            title="Set range to the current month"
+          >
+            <CalendarDays className="w-3.5 h-3.5" /> This Month
+          </button>
         </div>
         <div className="relative w-full md:w-56">
           <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
@@ -158,9 +244,89 @@ function AttendanceContent() {
         </div>
       </div>
 
+      {/* View tabs */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setTab('log')}
+          className={`px-3.5 py-1.5 rounded-xl text-[11px] font-bold border flex items-center gap-1.5 transition-colors ${
+            tab === 'log'
+              ? 'bg-thermal-500/15 text-thermal-400 border-thermal-500/40'
+              : 'bg-slate-900 text-slate-400 border-slate-700/60 hover:text-white'
+          }`}
+        >
+          <List className="w-3.5 h-3.5" /> Daily Log
+        </button>
+        <button
+          onClick={() => {
+            setTab('summary');
+            setPerson('');
+          }}
+          className={`px-3.5 py-1.5 rounded-xl text-[11px] font-bold border flex items-center gap-1.5 transition-colors ${
+            tab === 'summary'
+              ? 'bg-thermal-500/15 text-thermal-400 border-thermal-500/40'
+              : 'bg-slate-900 text-slate-400 border-slate-700/60 hover:text-white'
+          }`}
+        >
+          <CalendarClock className="w-3.5 h-3.5" /> Monthly Summary by Employee
+        </button>
+        <button
+          onClick={() => setTab('calendar')}
+          className={`px-3.5 py-1.5 rounded-xl text-[11px] font-bold border flex items-center gap-1.5 transition-colors ${
+            tab === 'calendar'
+              ? 'bg-thermal-500/15 text-thermal-400 border-thermal-500/40'
+              : 'bg-slate-900 text-slate-400 border-slate-700/60 hover:text-white'
+          }`}
+        >
+          <CalendarRange className="w-3.5 h-3.5" /> Calendar
+        </button>
+        <div className="ml-auto flex items-center gap-2">
+        {person && tab !== 'summary' && (
+          <button
+            onClick={() => setPerson('')}
+            className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/20 flex items-center gap-1.5"
+            title="Show all employees again"
+          >
+            {personName} <X className="w-3 h-3" />
+          </button>
+        )}
+        <button
+          onClick={exportReport}
+          disabled={exporting}
+          className="px-3.5 py-1.5 rounded-xl text-[11px] font-bold border flex items-center gap-1.5 bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20 disabled:opacity-40 transition-colors"
+          title="Export monthly report (Excel: summary + daily log + holidays)"
+        >
+          <Download className="w-3.5 h-3.5" /> {exporting ? 'Exporting…' : 'Export Excel'}
+        </button>
+        <button
+          onClick={() => setShowHolidays(true)}
+          className="px-3.5 py-1.5 rounded-xl text-[11px] font-bold border flex items-center gap-1.5 bg-violet-500/10 text-violet-300 border-violet-500/30 hover:bg-violet-500/20 transition-colors"
+          title="Manage the holiday calendar"
+        >
+          <PartyPopper className="w-3.5 h-3.5" /> Holidays
+        </button>
+        </div>
+      </div>
+
       <div className="glass-card rounded-3xl border border-slate-800 overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-xs text-slate-400">Loading attendance...</div>
+        ) : tab === 'calendar' ? (
+          <AttendanceCalendar
+            month={calMonth}
+            onMonthChange={setCalMonth}
+            rows={filtered}
+            holidays={holidays}
+            personMode={!!person}
+            onSelectRecord={(r) => setView(r as AttendanceRow)}
+          />
+        ) : tab === 'summary' ? (
+          <EmployeeSummaryTable
+            summary={summary}
+            onDrill={(id) => {
+              setPerson(id);
+              setTab('log');
+            }}
+          />
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center text-xs text-slate-400">No records for this range</div>
         ) : (
@@ -207,6 +373,13 @@ function AttendanceContent() {
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setView(r)}
+                          className="p-1.5 rounded-lg bg-slate-500/10 hover:bg-slate-500/20 text-slate-300 border border-slate-600/40"
+                          title="Punch details (device, IP, GPS)"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
                         {canWrite && (
                           <button
                             onClick={() => setEdit(r)}
@@ -244,6 +417,19 @@ function AttendanceContent() {
           saving={updateMutation.isPending}
           onClose={() => setEdit(null)}
           onSave={(payload) => updateMutation.mutate(payload)}
+        />
+      )}
+
+      {view && (
+        <AttendanceDetailsModal row={view} offices={offices} onClose={() => setView(null)} />
+      )}
+
+      {showHolidays && (
+        <HolidayManager
+          offices={offices}
+          canWrite={canManageHolidays}
+          canDelete={canDeleteHolidays}
+          onClose={() => setShowHolidays(false)}
         />
       )}
     </div>
