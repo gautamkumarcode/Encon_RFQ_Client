@@ -1,6 +1,6 @@
 'use client';
 
-import { ClipboardList, IndianRupee, Hourglass } from 'lucide-react';
+import { ClipboardList, IndianRupee, Hourglass, Banknote, Wallet } from 'lucide-react';
 import { inr } from './utils';
 
 interface Props {
@@ -8,10 +8,12 @@ interface Props {
   totalINR: number;
   openINR: number;
   openCount?: number;
+  receivedINR?: number;
+  pendingINR?: number;
 }
 
 // Tally Books–style summary cards: icon + label header, accent dot, big value, subline.
-export default function SummaryChips({ count, totalINR, openINR, openCount }: Props) {
+export default function SummaryChips({ count, totalINR, openINR, openCount, receivedINR = 0, pendingINR = 0 }: Props) {
   const cards = [
     {
       label: 'Orders in Hand',
@@ -21,23 +23,37 @@ export default function SummaryChips({ count, totalINR, openINR, openCount }: Pr
       sub: `${count} order${count === 1 ? '' : 's'}`,
     },
     {
-      label: 'Total Value',
+      label: 'Total Order Value',
       icon: IndianRupee,
       dot: 'bg-emerald-400',
       value: inr(totalINR),
-      sub: 'order book (INR)',
+      sub: 'INR sum of all orders',
+    },
+    {
+      label: 'Payments Received',
+      icon: Banknote,
+      dot: 'bg-sky-400',
+      value: inr(receivedINR),
+      sub: 'advance + instalments',
+    },
+    {
+      label: 'Pending Payment',
+      icon: Wallet,
+      dot: 'bg-rose-400',
+      value: inr(pendingINR),
+      sub: 'order value − received',
     },
     {
       label: 'Open (not dispatched)',
       icon: Hourglass,
-      dot: 'bg-sky-400',
+      dot: 'bg-violet-400',
       value: inr(openINR),
       sub: openCount != null ? `${openCount} live order${openCount === 1 ? '' : 's'}` : 'awaiting dispatch',
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {cards.map((c) => {
         const Icon = c.icon;
         return (

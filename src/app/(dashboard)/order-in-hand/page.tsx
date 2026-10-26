@@ -176,7 +176,14 @@ function OrderInHandContent() {
   return (
     <div className="" ref={tableRef}>
       <PageHeader refreshing={isFetching} exporting={exporting} onRefresh={() => refetch()} onExport={handleExport} onNew={openNew} onImport={() => setImportOpen(true)} />
-      <SummaryChips count={data?.count ?? 0} totalINR={data?.totalINR || 0} openINR={data?.openINR || 0} />
+      <SummaryChips
+        count={data?.count ?? 0}
+        totalINR={data?.totalINR || 0}
+        openINR={data?.openINR || 0}
+        openCount={data?.openCount}
+        receivedINR={data?.receivedINR || 0}
+        pendingINR={data?.pendingINR || 0}
+      />
       <FilterBar search={search} onSearch={setSearch} status={statusFilter} onStatus={setStatusFilter} />
       <OrdersTable
         isLoading={isLoading}

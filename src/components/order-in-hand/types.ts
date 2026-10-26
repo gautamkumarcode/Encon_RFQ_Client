@@ -30,6 +30,7 @@ export interface Order {
   lineItems: LineItem[];
   currency: string;
   orderValue: number;
+  fxRate: number;
   orderValueINR: number;
   termsOfPayment: string;
   advanceAmount: number;
@@ -51,6 +52,9 @@ export interface OrdersResponse {
   count: number;
   totalINR: number;
   openINR: number;
+  openCount: number;
+  receivedINR: number;
+  pendingINR: number;
   data: Order[];
 }
 
@@ -155,6 +159,7 @@ export interface FormState {
   poDate: string;
   orderReceivedDate: string;
   currency: string;
+  fxRate: string;
   orderValueINR: string;
   termsOfPayment: string;
   advanceAmount: string;

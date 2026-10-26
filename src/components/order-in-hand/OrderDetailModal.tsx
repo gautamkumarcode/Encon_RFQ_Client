@@ -70,7 +70,8 @@ export default function OrderDetailModal({ order, onClose, onEdit }: Props) {
               </span>
               {order.currency !== 'INR' && (
                 <>
-                  {' '}· <span className="font-semibold tabular-nums text-slate-300">₹{fmt(order.orderValueINR)}</span>
+                  {' '}· {order.fxRate ? `@ ₹${order.fxRate} = ` : '· '}
+                  <span className="font-semibold tabular-nums text-slate-300">₹{fmt(order.orderValueINR)}</span>
                 </>
               )}
             </span>
@@ -93,6 +94,9 @@ export default function OrderDetailModal({ order, onClose, onEdit }: Props) {
               <Field label="PO Date" value={fmtDate(order.poDate)} />
               <Field label="Order Received" value={fmtDate(order.orderReceivedDate)} />
               <Field label="Currency" value={order.currency} />
+              {order.currency !== 'INR' && (
+                <Field label={`Rate (₹ per 1 ${order.currency})`} value={order.fxRate ? String(order.fxRate) : '—'} />
+              )}
               <Field label="Expected Despatch" value={fmtDate(order.expectedDespatch)} />
               <Field label="Dispatch as per PO" value={fmtDate(order.dispatchAsPerPo)} />
             </div>

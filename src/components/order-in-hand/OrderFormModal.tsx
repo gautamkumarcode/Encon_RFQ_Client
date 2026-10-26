@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useEffect } from 'react';
 import {
   X,
   Loader2,
@@ -102,6 +103,16 @@ export default function OrderFormModal({
     setField('clientName', c.name);
     setField('clientId', c.id);
   };
+
+  // Foreign order: the user types today's rate (₹ per 1 unit) and the INR
+  // equivalent is calculated from it. No system rate is ever assumed.
+  useEffect(() => {
+    if ((form.currency || 'INR').toUpperCase() === 'INR' || !lineTotal) return;
+    const rate = Number(form.fxRate) || 0;
+    if (rate <= 0) return;
+    setField('orderValueINR', String(Math.round(lineTotal * rate * 100) / 100));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.currency, form.fxRate, lineTotal]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 sm:p-6">
@@ -274,6 +285,18 @@ export default function OrderFormModal({
                     </option>
                   ))}
                 </select>
+              </Field>
+              <Field label={form.currency === 'INR' ? 'FX Rate (₹ per unit)' : `Rate (₹ per 1 ${form.currency})`}>
+                <input
+                  type="number"
+                  step="0.0001"
+                  min="0"
+                  placeholder={form.currency === 'INR' ? 'n/a' : 'e.g. 89.50'}
+                  value={form.fxRate}
+                  onChange={(e) => setField('fxRate', e.target.value)}
+                  disabled={form.currency === 'INR'}
+                  className={`${INPUT_CLS} disabled:cursor-not-allowed disabled:opacity-50`}
+                />
               </Field>
               <Field label="Order Value (INR)">
                 <input

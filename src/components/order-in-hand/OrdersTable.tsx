@@ -65,7 +65,12 @@ export default function OrdersTable({ isLoading, rows, paged, startIdx, totalCou
                     {sym(o.currency)}
                     {fmt(o.orderValue)}
                   </td>
-                  <td className="px-3 py-2 text-right whitespace-nowrap text-xs tabular-nums text-slate-300">{fmt(o.orderValueINR)}</td>
+                  <td
+                    className="px-3 py-2 text-right whitespace-nowrap text-xs tabular-nums text-slate-300"
+                    title="INR equivalent as entered on the order"
+                  >
+                    ₹{fmt(o.orderValueINR)}
+                  </td>
                   <td className="px-3 py-2 whitespace-nowrap text-xs text-slate-400">
                     {o.expectedDespatch ? new Date(o.expectedDespatch).toLocaleDateString('en-IN') : '—'}
                   </td>
