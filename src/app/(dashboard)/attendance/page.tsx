@@ -10,7 +10,7 @@ import AttendanceDetailsModal, { PunchDetail } from '../../../components/hr/Atte
 import EmployeeSummaryTable, { buildEmployeeSummary } from '../../../components/hr/EmployeeSummaryTable';
 import AttendanceCalendar, { monthKey } from '../../../components/hr/AttendanceCalendar';
 import HolidayManager, { Holiday } from '../../../components/hr/HolidayManager';
-import { CalendarClock, Search, Edit2, Trash2, X, Eye, CalendarDays, List, CalendarRange, PartyPopper, Download } from 'lucide-react';
+import { CalendarClock, Search, Edit2, Trash2, X, Eye, CalendarDays, List, CalendarRange, PartyPopper, Download, AlertTriangle } from 'lucide-react';
 
 interface Punch extends PunchDetail {}
 interface AttendanceRow {
@@ -40,11 +40,11 @@ const toLocalInput = (iso?: string | null) => {
 };
 
 const statusCls: Record<string, string> = {
-  PRESENT: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-  LATE: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-  HALF_DAY: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
-  ABSENT: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
-  LEAVE: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+  PRESENT: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  LATE: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  HALF_DAY: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
+  ABSENT: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+  LEAVE: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
 };
 
 function isoDaysAgo(n: number) {
@@ -191,16 +191,16 @@ function AttendanceContent() {
 
   return (
     <div className="space-y-6">
-      <div className="glass-card p-6 rounded-3xl border border-slate-800">
-        <h1 className="text-xl font-extrabold text-white flex items-center gap-2">
-          <CalendarClock className="w-5 h-5 text-thermal-500" /> Attendance Register
+      <div className="glass-card p-5 rounded-xl border border-slate-800">
+        <h1 className="text-xl font-bold text-white flex items-center gap-2">
+          <CalendarClock className="w-5 h-5 text-thermal-400" /> Attendance Register
         </h1>
         <p className="text-xs text-slate-400 mt-1">
           View and regularize employee clock-in / clock-out across branches
         </p>
       </div>
 
-      <div className="glass-card p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-3 items-end justify-between">
+      <div className="glass-card p-4 rounded-xl border border-slate-800 flex flex-col md:flex-row gap-3 items-end justify-between">
         <div className="flex flex-wrap gap-3 items-end">
           <div>
             <label className="block text-[10px] font-semibold text-slate-400 mb-1">From</label>
@@ -227,7 +227,7 @@ function AttendanceContent() {
               setFrom(m.from);
               setTo(m.to);
             }}
-            className="px-3 py-2 rounded-xl text-[11px] font-bold bg-thermal-500/10 text-thermal-400 border border-thermal-500/30 hover:bg-thermal-500/20 flex items-center gap-1.5"
+            className="px-3 py-2 rounded-md text-[11px] font-semibold bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 hover:text-white flex items-center gap-1.5 transition-colors"
             title="Set range to the current month"
           >
             <CalendarDays className="w-3.5 h-3.5" /> This Month
@@ -239,7 +239,7 @@ function AttendanceContent() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search employee..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700/60 rounded-xl text-xs text-white focus:outline-none focus:border-thermal-500"
+            className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-md text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
           />
         </div>
       </div>
@@ -248,10 +248,10 @@ function AttendanceContent() {
       <div className="flex items-center gap-2">
         <button
           onClick={() => setTab('log')}
-          className={`px-3.5 py-1.5 rounded-xl text-[11px] font-bold border flex items-center gap-1.5 transition-colors ${
+          className={`px-3 py-1.5 rounded-md text-[11px] font-semibold border flex items-center gap-1.5 transition-colors ${
             tab === 'log'
-              ? 'bg-thermal-500/15 text-thermal-400 border-thermal-500/40'
-              : 'bg-slate-900 text-slate-400 border-slate-700/60 hover:text-white'
+              ? 'bg-thermal-500/10 text-thermal-400 border-thermal-500/30'
+              : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
           }`}
         >
           <List className="w-3.5 h-3.5" /> Daily Log
@@ -261,20 +261,20 @@ function AttendanceContent() {
             setTab('summary');
             setPerson('');
           }}
-          className={`px-3.5 py-1.5 rounded-xl text-[11px] font-bold border flex items-center gap-1.5 transition-colors ${
+          className={`px-3 py-1.5 rounded-md text-[11px] font-semibold border flex items-center gap-1.5 transition-colors ${
             tab === 'summary'
-              ? 'bg-thermal-500/15 text-thermal-400 border-thermal-500/40'
-              : 'bg-slate-900 text-slate-400 border-slate-700/60 hover:text-white'
+              ? 'bg-thermal-500/10 text-thermal-400 border-thermal-500/30'
+              : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
           }`}
         >
           <CalendarClock className="w-3.5 h-3.5" /> Monthly Summary by Employee
         </button>
         <button
           onClick={() => setTab('calendar')}
-          className={`px-3.5 py-1.5 rounded-xl text-[11px] font-bold border flex items-center gap-1.5 transition-colors ${
+          className={`px-3 py-1.5 rounded-md text-[11px] font-semibold border flex items-center gap-1.5 transition-colors ${
             tab === 'calendar'
-              ? 'bg-thermal-500/15 text-thermal-400 border-thermal-500/40'
-              : 'bg-slate-900 text-slate-400 border-slate-700/60 hover:text-white'
+              ? 'bg-thermal-500/10 text-thermal-400 border-thermal-500/30'
+              : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
           }`}
         >
           <CalendarRange className="w-3.5 h-3.5" /> Calendar
@@ -283,7 +283,7 @@ function AttendanceContent() {
         {person && tab !== 'summary' && (
           <button
             onClick={() => setPerson('')}
-            className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/20 flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-md text-[11px] font-semibold bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 hover:text-white flex items-center gap-1.5 transition-colors"
             title="Show all employees again"
           >
             {personName} <X className="w-3 h-3" />
@@ -292,14 +292,14 @@ function AttendanceContent() {
         <button
           onClick={exportReport}
           disabled={exporting}
-          className="px-3.5 py-1.5 rounded-xl text-[11px] font-bold border flex items-center gap-1.5 bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20 disabled:opacity-40 transition-colors"
+          className="px-3 py-1.5 rounded-md text-[11px] font-semibold border flex items-center gap-1.5 bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700 hover:text-white disabled:opacity-50 transition-colors"
           title="Export monthly report (Excel: summary + daily log + holidays)"
         >
           <Download className="w-3.5 h-3.5" /> {exporting ? 'Exporting…' : 'Export Excel'}
         </button>
         <button
           onClick={() => setShowHolidays(true)}
-          className="px-3.5 py-1.5 rounded-xl text-[11px] font-bold border flex items-center gap-1.5 bg-violet-500/10 text-violet-300 border-violet-500/30 hover:bg-violet-500/20 transition-colors"
+          className="px-3 py-1.5 rounded-md text-[11px] font-semibold border flex items-center gap-1.5 bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700 hover:text-white transition-colors"
           title="Manage the holiday calendar"
         >
           <PartyPopper className="w-3.5 h-3.5" /> Holidays
@@ -307,7 +307,7 @@ function AttendanceContent() {
         </div>
       </div>
 
-      <div className="glass-card rounded-3xl border border-slate-800 overflow-hidden">
+      <div className="glass-card rounded-xl border border-slate-800 overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-xs text-slate-400">Loading attendance...</div>
         ) : tab === 'calendar' ? (
@@ -354,28 +354,28 @@ function AttendanceContent() {
                     <td className="py-3.5 px-4 text-slate-300">{fmtDay(r.date)}</td>
                     <td className="py-3.5 px-4 text-slate-300">{r.officeName || '—'}</td>
                     <td className="py-3.5 px-4">
-                      <span className="text-slate-200">{fmtTime(r.clockIn?.time)}</span>
+                      <span className="text-slate-200 tabular-nums">{fmtTime(r.clockIn?.time)}</span>
                       {r.clockIn?.geofenceOk === false && (
-                        <span className="ml-1 text-[9px] text-amber-400">⚠</span>
+                        <AlertTriangle className="inline ml-1 w-3 h-3 text-amber-400" aria-label="Outside geofence" />
                       )}
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="text-slate-200">{fmtTime(r.clockOut?.time)}</span>
+                      <span className="text-slate-200 tabular-nums">{fmtTime(r.clockOut?.time)}</span>
                       {r.clockOut?.geofenceOk === false && (
-                        <span className="ml-1 text-[9px] text-amber-400">⚠</span>
+                        <AlertTriangle className="inline ml-1 w-3 h-3 text-amber-400" aria-label="Outside geofence" />
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-300">{fmtDur(r.totalWorkMinutes)}</td>
+                    <td className="py-3.5 px-4 text-slate-300 tabular-nums">{fmtDur(r.totalWorkMinutes)}</td>
                     <td className="py-3.5 px-4">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${statusCls[r.status] || ''}`}>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-medium border ${statusCls[r.status] || ''}`}>
                         {r.status}
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => setView(r)}
-                          className="p-1.5 rounded-lg bg-slate-500/10 hover:bg-slate-500/20 text-slate-300 border border-slate-600/40"
+                          className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                           title="Punch details (device, IP, GPS)"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -383,7 +383,7 @@ function AttendanceContent() {
                         {canWrite && (
                           <button
                             onClick={() => setEdit(r)}
-                            className="p-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
+                            className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                             title="Regularize"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -394,7 +394,7 @@ function AttendanceContent() {
                             onClick={() => {
                               if (window.confirm('Delete this attendance record?')) deleteMutation.mutate(r.id);
                             }}
-                            className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                            className="p-1.5 rounded-md text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -463,10 +463,10 @@ function EditModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="max-w-lg w-full glass-card rounded-3xl p-6 border border-slate-800 shadow-2xl">
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-start justify-center p-6 overflow-y-auto">
+      <div className="w-full max-w-lg rounded-xl border border-slate-700 bg-slate-900 p-6 mb-8 max-h-[calc(100vh-3rem)] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-          <h2 className="text-lg font-bold text-white">Regularize Attendance</h2>
+          <h2 className="text-base font-bold text-white">Regularize Attendance</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-white">
             <X className="w-4 h-4" />
           </button>
@@ -520,7 +520,7 @@ function EditModal({
         </div>
 
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800 mt-5">
-          <button onClick={onClose} className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">
+          <button onClick={onClose} className="px-4 py-2 rounded-md text-xs font-medium text-slate-400 hover:text-white transition-colors">
             Cancel
           </button>
           <button
@@ -533,7 +533,7 @@ function EditModal({
               })
             }
             disabled={saving}
-            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-xl shadow-md transition-all"
+            className="px-4 py-2 bg-thermal-600 hover:bg-thermal-500 text-white font-semibold text-xs rounded-md disabled:opacity-60 transition-colors"
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
@@ -544,12 +544,12 @@ function EditModal({
 }
 
 const inputCls =
-  'w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-thermal-500';
+  'w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-xs text-white focus:outline-none focus:border-thermal-500';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-slate-300 mb-1">{label}</label>
+      <label className="block text-[11px] font-semibold text-slate-400 mb-1">{label}</label>
       {children}
     </div>
   );

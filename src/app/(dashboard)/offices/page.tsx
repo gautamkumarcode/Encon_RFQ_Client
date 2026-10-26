@@ -171,10 +171,10 @@ function OfficesContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-6 rounded-3xl border border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-5 rounded-xl border border-slate-800">
         <div>
-          <h1 className="text-xl font-extrabold text-white flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-thermal-500" /> Office / Branch Management
+          <h1 className="text-xl font-bold text-white flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-thermal-400" /> Office / Branch Management
           </h1>
           <p className="text-xs text-slate-400 mt-1">
             Configure branch locations, geofence radius and attendance working-hour rules
@@ -186,26 +186,26 @@ function OfficesContent() {
               setForm(emptyForm());
               setAddrQuery('');
             }}
-            className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2 self-start sm:self-auto transition-all"
+            className="px-4 py-2 bg-thermal-600 hover:bg-thermal-500 text-white font-semibold text-xs rounded-md flex items-center gap-2 self-start sm:self-auto transition-colors"
           >
             <Plus className="w-4 h-4" /> Add Office
           </button>
         )}
       </div>
 
-      <div className="glass-card p-4 rounded-2xl border border-slate-800">
+      <div className="glass-card p-4 rounded-xl border border-slate-800">
         <div className="relative w-full md:w-72">
           <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search offices..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700/60 rounded-xl text-xs text-white focus:outline-none focus:border-thermal-500"
+            className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 rounded-md text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
           />
         </div>
       </div>
 
-      <div className="glass-card rounded-3xl border border-slate-800 overflow-hidden">
+      <div className="glass-card rounded-xl border border-slate-800 overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-xs text-slate-400">Loading offices...</div>
         ) : filtered.length === 0 ? (
@@ -247,24 +247,24 @@ function OfficesContent() {
                     <td className="py-3.5 px-4 text-slate-300">{o.geofenceRadiusMeters} m</td>
                     <td className="py-3.5 px-4">
                       <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                        className={`px-2 py-0.5 rounded text-[10px] font-medium border ${
                           o.status === 'ACTIVE'
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                            : 'bg-slate-700/40 text-slate-400 border border-slate-600'
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                            : 'bg-slate-800 text-slate-400 border-slate-700'
                         }`}
                       >
                         {o.status}
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1">
                         {canWrite && (
                           <button
                             onClick={() => {
                               setForm({ ...o });
                               setAddrQuery(o.address || '');
                             }}
-                            className="p-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
+                            className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                             title="Edit"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -275,7 +275,7 @@ function OfficesContent() {
                             onClick={() => {
                               if (window.confirm(`Delete office "${o.name}"?`)) deleteMutation.mutate(o.id);
                             }}
-                            className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                            className="p-1.5 rounded-md text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -292,11 +292,11 @@ function OfficesContent() {
       </div>
 
       {form && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="max-w-2xl w-full glass-card rounded-3xl p-6 border border-slate-800 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-start justify-center p-6 overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-xl border border-slate-700 bg-slate-900 p-6 mb-8 max-h-[calc(100vh-3rem)] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-thermal-500" />
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-thermal-400" />
                 {form.id ? 'Edit Office' : 'New Office'}
               </h2>
               <button onClick={() => setForm(null)} className="text-slate-400 hover:text-white">
@@ -340,14 +340,14 @@ function OfficesContent() {
                           }
                         }}
                         placeholder="e.g. 12 AJC Bose Road, Kolkata"
-                        className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-thermal-500"
+                        className="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-xs text-white placeholder-slate-500 focus:outline-none focus:border-thermal-500"
                       />
                     </div>
                     <button
                       type="button"
                       onClick={doSearch}
                       disabled={geoBusy}
-                      className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 flex items-center justify-center gap-1.5 disabled:opacity-60"
+                      className="px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 flex items-center justify-center gap-1.5 disabled:opacity-60 transition-colors"
                     >
                       {geoBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />} Search
                     </button>
@@ -355,7 +355,7 @@ function OfficesContent() {
                       type="button"
                       onClick={useMyLocation}
                       disabled={geoBusy}
-                      className="px-3 py-2 rounded-xl bg-thermal-500/15 hover:bg-thermal-500/25 text-thermal-300 border border-thermal-500/30 text-xs flex items-center justify-center gap-1.5 disabled:opacity-60"
+                      className="px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-xs font-medium text-thermal-400 border border-slate-700 flex items-center justify-center gap-1.5 disabled:opacity-60 transition-colors"
                     >
                       <Crosshair className="w-4 h-4" /> My location
                     </button>
@@ -429,13 +429,13 @@ function OfficesContent() {
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800 mt-5">
-              <button onClick={() => setForm(null)} className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">
+              <button onClick={() => setForm(null)} className="px-4 py-2 rounded-md text-xs font-medium text-slate-400 hover:text-white transition-colors">
                 Cancel
               </button>
               <button
                 onClick={submit}
                 disabled={saveMutation.isPending}
-                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-xl shadow-md transition-all"
+                className="px-4 py-2 bg-thermal-600 hover:bg-thermal-500 text-white font-semibold text-xs rounded-md disabled:opacity-60 transition-colors"
               >
                 {saveMutation.isPending ? 'Saving...' : 'Save Office'}
               </button>
@@ -448,7 +448,7 @@ function OfficesContent() {
 }
 
 const inputCls =
-  'w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-thermal-500';
+  'w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-md text-xs text-white focus:outline-none focus:border-thermal-500';
 
 // OpenStreetMap Nominatim (free, keyless) - reverse + forward geocoding.
 async function reverseGeocode(lat: number, lng: number): Promise<string> {
@@ -478,7 +478,7 @@ async function searchAddress(
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-slate-300 mb-1">{label}</label>
+      <label className="block text-[11px] font-semibold text-slate-400 mb-1">{label}</label>
       {children}
     </div>
   );
