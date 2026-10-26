@@ -15,6 +15,8 @@ import {
   Trash2,
   X,
   Lock,
+  ChevronDown,
+  ChevronsUpDown,
 } from 'lucide-react';
 
 /**
@@ -61,12 +63,19 @@ const MODULE_CONFIG: Record<string, { label: string; desc: string; category: str
   CLIENT_MGMT: { label: 'Client Master', desc: 'View the client directory. WRITE adds or edits client records and addresses', category: 'ORDERS' },
 
   TALLY: { label: 'Tally ERP Data & Books', desc: 'Read vouchers, ledgers, debtors/creditors, bank transactions and the sales/purchase registers synced from Tally', category: 'TALLY' },
+
+  HR_OFFICES: { label: 'Office / Branch Management', desc: 'Create branches, set their location, geofence radius and working-hour rules', category: 'HR' },
+  HR_EMPLOYEES: { label: 'Employee Directory', desc: 'Manage employee records - branch assignment, designation, join date, employment type', category: 'HR' },
+  HR_ATTENDANCE: { label: 'Attendance Register & Reports', desc: "View every employee's attendance; edit, regularize punches and export the monthly report", category: 'HR' },
+  HR_HOLIDAYS: { label: 'Holiday Calendar', desc: 'Maintain the company / branch holiday list shown in both attendance calendars', category: 'HR' },
+  ATTENDANCE_CLOCK: { label: 'Clock In / Out (Self-service)', desc: 'Lets the role clock itself in/out from the attendance app - grant to every staff role', category: 'HR' },
 };
 
 /** Sections on the matrix, in display order. Unknown categories fall to the end. */
-const CATEGORY_ORDER = ['SYSTEM', 'RFQ', 'ORDERS', 'TALLY'];
+const CATEGORY_ORDER = ['SYSTEM', 'HR', 'RFQ', 'ORDERS', 'TALLY'];
 const CATEGORY_TITLES: Record<string, string> = {
   SYSTEM: 'System Administration',
+  HR: 'HR · People & Attendance',
   RFQ: 'RFQ Tracker & Lifecycle',
   ORDERS: 'Orders & Clients',
   TALLY: 'Tally Integration',
@@ -78,6 +87,9 @@ export default function RoleManagementPage() {
 
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
   const [selectedPermIds, setSelectedPermIds] = useState<string[]>([]);
+  // Collapsible category dropdowns - start closed so the matrix opens as a
+  // scannable list of sections instead of ~74 rows.
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
   // Create Role modal state
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -220,7 +232,7 @@ export default function RoleManagementPage() {
               Role & Permission Matrix
             </h1>
             <p className="text-[11px] text-slate-400">
-              Configure granular role-based access control (RBAC) across system & RFQ sub-modules
+              Configure granular role-based access control (RBAC) across System, HR, RFQ, Orders & Tally modules
             </p>
           </div>
         </div>
@@ -310,22 +322,59 @@ export default function RoleManagementPage() {
                 🔒 System Admin (Full System Access Bypass)
               </span>
             ) : (
-              <span className="text-xs text-slate-400 font-mono">
-                {selectedPermIds.length} / {permissions.length} Permissions Active
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const anyClosed = sections.some((s) => !openSections[s.cat]);
+                    setOpenSections(Object.fromEntries(sections.map((s) => [s.cat, anyClosed])));
+                  }}
+                  className="px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-400 border border-slate-800 bg-slate-950 hover:text-white hover:border-slate-700 flex items-center gap-1.5 transition-colors"
+                >
+                  <ChevronsUpDown className="w-3.5 h-3.5" />
+                  {sections.some((s) => !openSections[s.cat]) ? 'Expand all' : 'Collapse all'}
+                </button>
+                <span className="text-xs text-slate-400 font-mono">
+                  {selectedPermIds.length} / {permissions.length} Permissions Active
+                </span>
+              </div>
             )}
           </div>
 
-          <div className="space-y-5">
-            {sections.map((section) => (
-              <div key={section.cat} className="space-y-3">
-                <div className="flex items-center gap-2 pb-1 border-b border-slate-800">
-                  <h3 className="text-[11px] font-bold text-white uppercase tracking-widest">
-                    {CATEGORY_TITLES[section.cat] ?? section.cat}
-                  </h3>
-                  <span className="text-[10px] text-slate-500 font-mono">{section.mods.length} modules</span>
-                </div>
-                <div className="space-y-4">
+          <div className="space-y-3">
+            {sections.map((section) => {
+              const sectionPerms = permissions.filter((p) => section.mods.includes(p.module));
+              const grantedCount = sectionPerms.filter((p) => selectedPermIds.includes(p.id)).length;
+              const isOpen = !!openSections[section.cat];
+              return (
+              <div key={section.cat} className="rounded-xl border border-slate-800 bg-slate-950/40 overflow-hidden">
+                {/* Section dropdown header - click to expand the whole area */}
+                <button
+                  type="button"
+                  onClick={() => setOpenSections((prev) => ({ ...prev, [section.cat]: !prev[section.cat] }))}
+                  className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-slate-900/50 transition-colors"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <ChevronDown className={`w-4 h-4 shrink-0 text-thermal-400 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
+                    <h3 className="text-[11px] font-bold text-white uppercase tracking-widest">
+                      {CATEGORY_TITLES[section.cat] ?? section.cat}
+                    </h3>
+                    <span className="text-[10px] text-slate-500 font-mono">{section.mods.length} modules</span>
+                  </div>
+                  <span
+                    className={`shrink-0 px-2 py-0.5 rounded-md border text-[10px] font-bold ${
+                      activeRole.name === 'ADMIN' || (sectionPerms.length > 0 && grantedCount === sectionPerms.length)
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                        : grantedCount > 0
+                          ? 'bg-thermal-500/10 text-thermal-400 border-thermal-500/30'
+                          : 'bg-slate-900 text-slate-500 border-slate-800'
+                    }`}
+                  >
+                    {activeRole.name === 'ADMIN' ? 'ALL' : `${grantedCount}/${sectionPerms.length}`} granted
+                  </span>
+                </button>
+                {isOpen && (
+                <div className="px-4 pb-4 pt-1 space-y-4 border-t border-slate-800">
             {section.mods.map((mod) => {
               const modPerms = permissions.filter((p) => p.module === mod);
               const allModSelected = modPerms.every((p) => selectedPermIds.includes(p.id)) || activeRole.name === 'ADMIN';
@@ -399,8 +448,10 @@ export default function RoleManagementPage() {
               );
             })}
                 </div>
+                )}
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
