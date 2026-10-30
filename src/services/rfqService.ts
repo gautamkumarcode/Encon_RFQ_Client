@@ -283,6 +283,12 @@ export const rfqService = {
 		return res.data;
 	},
 
+	// Hand-off to the Offer Automation app: returns an SSO-tokenized URL
+	getAutomationUrl: async (id: string | number) => {
+		const res = await api.get(`/rfq/${id}/automation-url`);
+		return res.data;
+	},
+
 	syncDriveFolder: async (id: string | number) => {
 		const res = await api.post(`/rfq/${id}/sync-drive`);
 		return res.data;

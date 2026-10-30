@@ -12,6 +12,7 @@ import {
 	ChevronUp,
 	Clock,
 	Download,
+	ExternalLink,
 	Eye,
 	Folder,
 	History,
@@ -94,6 +95,38 @@ export default function EnquiryDetailPage() {
 	const [nextFollowup, setNextFollowup] = useState("");
 	const [loggingCall, setLoggingCall] = useState(false);
 	const [followupType, setFollowupType] = useState<string>("Call");
+	const [sendingToAutomation, setSendingToAutomation] = useState(false);
+
+	// Hand-off: open the Offer Automation app with an SSO token for this enquiry
+	const handleSendToAutomation = async () => {
+		if (!enquiryId || sendingToAutomation) return;
+		setSendingToAutomation(true);
+		try {
+			const res = await rfqService.getAutomationUrl(enquiryId);
+			if (res?.targetUrl) {
+				window.open(res.targetUrl, "_blank");
+				showToast(
+					"Offer Automation",
+					`Opening automation app for ${enquiry.rfqId || "this enquiry"}...`,
+					"success",
+				);
+			} else {
+				showToast(
+					"Offer Automation",
+					"Automation URL not returned by server",
+					"error",
+				);
+			}
+		} catch (err: any) {
+			showToast(
+				"Automation Error",
+				err.message || "Failed to open the Offer Automation app",
+				"error",
+			);
+		} finally {
+			setSendingToAutomation(false);
+		}
+	};
 
 	const handleLogCall = async () => {
 		if (!callNote.trim()) {
@@ -806,6 +839,19 @@ export default function EnquiryDetailPage() {
 								Open Drive
 							</button>
 						</>
+					)}
+					{!isNew && (
+						<button
+							type="button"
+							onClick={handleSendToAutomation}
+							disabled={sendingToAutomation}
+							className="px-3.5 py-2 rounded-md text-xs font-semibold bg-violet-50 dark:bg-violet-950/50 hover:bg-violet-100 dark:hover:bg-violet-900/60 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-500/40 shadow-2xs transition-all flex items-center justify-center gap-1.5 whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed"
+							title="Open the Offer Automation app for this enquiry (single sign-on, enquiry pre-loaded)">
+							<ExternalLink className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400 shrink-0" />{" "}
+							{sendingToAutomation
+								? "Opening..."
+								: "Send to Automation"}
+						</button>
 					)}
 					{canEdit && (enquiry.status || "").toLowerCase() === "open" && (
 						<button
